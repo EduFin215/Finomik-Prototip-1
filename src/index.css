@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+:root {
+  /* Finomik primary and secondary blues */
+  --finomik-primary: #0B3064;
+  --finomik-blue-1: #114076;
+  --finomik-blue-2: #3C4C67;
+  --finomik-blue-3: #3E5374;
+  --finomik-blue-4: #5574A7;
+  --finomik-blue-5: #8F9EB7;
+  --finomik-blue-6: #C8D0DD;
+
+  /* Status colors (success / warning / error) */
+  --finomik-success: #0D7A4A;
+  --finomik-success-soft: #D1FAE5;
+  --finomik-warning: #B45309;
+  --finomik-warning-soft: #FEF3C7;
+  --finomik-error: #B91C1C;
+  --finomik-error-soft: #FEE2E2;
+
+  --finomik-page-bg: #FFFFFF;
+}
+
+body {
+  margin: 0;
+  background-color: var(--finomik-page-bg);
+  color: #0B3064;
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+/* Finomik utility classes */
+.bg-finomik-primary {
+  background-color: var(--finomik-primary);
+}
+
+.bg-finomik-blue-soft {
+  background-color: var(--finomik-blue-6);
+}
+
+.text-finomik-primary {
+  color: var(--finomik-primary);
+}
+
+.text-finomik-blue-5 {
+  color: var(--finomik-blue-5);
+}
+
+.border-finomik-primary {
+  border-color: var(--finomik-primary);
+}
+
+/* Status utilities */
+.bg-finomik-success { background-color: var(--finomik-success); }
+.text-finomik-success { color: var(--finomik-success); }
+.border-finomik-success { border-color: var(--finomik-success); }
+.bg-finomik-success\/10 { background-color: color-mix(in srgb, var(--finomik-success) 10%, transparent); }
+.bg-finomik-success-soft { background-color: var(--finomik-success-soft); }
+
+.bg-finomik-warning { background-color: var(--finomik-warning); }
+.text-finomik-warning { color: var(--finomik-warning); }
+.border-finomik-warning { border-color: var(--finomik-warning); }
+.bg-finomik-warning\/10 { background-color: color-mix(in srgb, var(--finomik-warning) 10%, transparent); }
+.bg-finomik-warning-soft { background-color: var(--finomik-warning-soft); }
+
+.bg-finomik-error { background-color: var(--finomik-error); }
+.text-finomik-error { color: var(--finomik-error); }
+.border-finomik-error { border-color: var(--finomik-error); }
+.bg-finomik-error\/10 { background-color: color-mix(in srgb, var(--finomik-error) 10%, transparent); }
+.bg-finomik-error-soft { background-color: var(--finomik-error-soft); }
+.border-finomik-success\/20 { border-color: color-mix(in srgb, var(--finomik-success) 20%, transparent); }
+.border-finomik-warning\/20 { border-color: color-mix(in srgb, var(--finomik-warning) 20%, transparent); }
+.border-finomik-error\/20 { border-color: color-mix(in srgb, var(--finomik-error) 20%, transparent); }
+
+.bg-finomik-gradient-strong {
+  background-image: linear-gradient(
+    135deg,
+    #0B3064 0%,
+    #114076 30%,
+    #3E5374 60%,
+    #5574A7 100%
+  );
+}
+
+.bg-finomik-gradient-soft {
+  background-image: linear-gradient(
+    135deg,
+    #FFFFFF 0%,
+    #C8D0DD 35%,
+    #8F9EB7 70%,
+    #5574A7 100%
+  );
+}
+
+.heading-1 {
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-weight: 900;
+}
+
+.heading-2 {
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-weight: 800;
+}
+
+.text-body {
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-weight: 400;
+}
