@@ -37,7 +37,7 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon: Icon, label, value, helper, onC
     onClick={onClick}
     className="text-left"
   >
-    <div className="bg-white border border-[color:var(--finomik-blue-6)] rounded-xl p-4 flex flex-col gap-2 h-full">
+    <div className="bg-white border border-[color:var(--finomik-blue-6)] rounded-xl p-3 md:p-4 flex flex-col gap-1.5 h-full">
       <div className="flex items-center justify-between">
         <div className="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--finomik-blue-5)]">
           {label}
@@ -46,7 +46,7 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon: Icon, label, value, helper, onC
           <Icon size={16} className="text-finomik-primary" />
         </div>
       </div>
-      <div className="text-2xl font-bold text-finomik-primary">{value}</div>
+      <div className="text-xl md:text-2xl font-bold text-finomik-primary">{value}</div>
       {helper && (
         <div className="text-xs text-[color:var(--finomik-blue-5)] mt-1">{helper}</div>
       )}
@@ -69,7 +69,7 @@ const NextActionCard: React.FC<NextActionCardProps> = ({
 }) => (
   <motion.div
     whileHover={{ scale: 1.01 }}
-    className="rounded-2xl p-5 md:p-6 flex flex-col gap-3 bg-[#DCE5F2] border border-[color:var(--finomik-blue-6)] shadow-sm"
+    className="rounded-2xl p-4 md:p-5 flex flex-col gap-2.5 bg-[#DCE5F2] border border-[color:var(--finomik-blue-6)] shadow-sm"
   >
     <div className="flex items-center gap-2">
       <div className="w-9 h-9 rounded-full bg-white/70 flex items-center justify-center">
@@ -130,7 +130,7 @@ export const Dashboard = () => {
   return (
     <div className={theme.contentPadding}>
       {/* Hero */}
-      <div className="space-y-4">
+      <div className="space-y-2.5">
         <div>
           <h1 className={theme.headingLarge}>Tu aprendizaje financiero</h1>
           <p className={theme.textSubtle}>
@@ -142,12 +142,12 @@ export const Dashboard = () => {
 
         <motion.div
           whileHover={theme.animation.whileHover}
-          className="bg-finomik-gradient-strong text-white p-5 md:p-6 rounded-2xl relative overflow-hidden shadow-md"
+          className="bg-finomik-gradient-strong text-white p-4 md:p-5 rounded-2xl relative overflow-hidden shadow-md"
         >
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-12 -mt-16" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-10 mb-[-2rem]" />
-          <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-3">
+          <div className="relative z-10 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2.5">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center">
                   <Trophy size={18} className="text-white" />
@@ -159,7 +159,7 @@ export const Dashboard = () => {
               <div>
                 <div className="text-sm opacity-80 mb-1">Tu experiencia total</div>
                 <div className="text-3xl md:text-4xl font-extrabold">{user.xp} XP</div>
-                <div className="mt-3 w-full bg-white/15 h-2 rounded-full overflow-hidden">
+                <div className="mt-2 w-full bg-white/15 h-2 rounded-full overflow-hidden">
                   <div
                     className="bg-white h-full rounded-full"
                     style={{ width: `${user.xp % 100}%` }}
@@ -173,7 +173,7 @@ export const Dashboard = () => {
               </div>
             </div>
 
-            <div className="space-y-3 md:w-64">
+            <div className="space-y-2.5 md:w-64">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-medium uppercase tracking-wider opacity-80">
                   Progreso del curso
@@ -186,7 +186,7 @@ export const Dashboard = () => {
                   style={{ width: `${user.progress}%` }}
                 />
               </div>
-              <div className="flex items-center justify-between gap-2 mt-3">
+              <div className="flex items-center justify-between gap-2 mt-2.5">
                 <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs">
                   <Coins size={14} className="text-yellow-200" />
                   <span className="font-semibold">{user.coins} monedas</span>
@@ -202,7 +202,7 @@ export const Dashboard = () => {
       </div>
 
       {isRestrictedByZeroBalance && (
-        <div className="mt-6 flex items-center gap-3 p-4 rounded-xl bg-finomik-warning-soft border border-finomik-warning/30">
+        <div className="mt-4 flex items-center gap-3 p-4 rounded-xl bg-finomik-warning-soft border border-finomik-warning/30">
           <AlertTriangle size={24} className="text-finomik-warning flex-shrink-0" />
           <p className="text-sm font-medium text-finomik-primary">
             Solo decisiones de supervivencia hasta recuperar saldo. El flujo neto mensual te permitirá recuperarte.
@@ -211,7 +211,7 @@ export const Dashboard = () => {
       )}
 
       {/* KPIs: perfil financiero */}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           icon={Wallet}
           label="Saldo disponible"
@@ -241,9 +241,9 @@ export const Dashboard = () => {
       </div>
 
       {/* Central section: next step + path + chart */}
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="mt-3 grid grid-cols-1 gap-4 lg:gap-3 lg:grid-cols-2">
         {/* Izquierda: siguiente paso + resumen camino */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <NextActionCard
             title={
               nextNode
@@ -259,7 +259,7 @@ export const Dashboard = () => {
             onClick={() => setCurrentScreen('world')}
           />
 
-          <div className={`${theme.card} p-5 flex flex-col gap-4`}>
+          <div className={`${theme.card} p-4 md:p-5 flex flex-col gap-3`}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className={theme.headingMedium}>Resumen del camino</h3>
@@ -287,71 +287,24 @@ export const Dashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* Tu posición en clase — debajo de Resumen del camino para rellenar espacio y no tapar inversión */}
-          <div className={`${theme.card} p-5`}>
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className={theme.headingMedium}>Tu posición en clase</h3>
-                <p className={theme.textSubtle}>Comparado con tu grupo</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-10 h-10 rounded-full bg-finomik-blue-soft flex items-center justify-center">
-                <Trophy size={20} className="text-finomik-primary" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-finomik-primary">
-                  #{sortedLeaderboard.findIndex(p => p.isUser) + 1} en el ranking
-                </div>
-                <div className="text-[11px] text-[color:var(--finomik-blue-5)]">
-                  Sigue sumando XP para subir posiciones.
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {sortedLeaderboard.slice(0, 3).map((player, index) => (
-                <div
-                  key={player.id}
-                  className={`flex items-center justify-between text-xs py-1.5 px-2 rounded ${
-                    player.isUser ? 'bg-finomik-blue-soft/80' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="w-4 text-center font-semibold text-[color:var(--finomik-blue-5)]">
-                      {index + 1}
-                    </span>
-                    <span className="font-semibold text-finomik-primary">{player.name}</span>
-                  </div>
-                  <span className="text-[color:var(--finomik-blue-5)]">{player.xp} XP</span>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => setCurrentScreen('profile')}
-              className="mt-3 w-full text-center text-[11px] font-semibold text-finomik-primary hover:bg-finomik-blue-soft/60 rounded-full py-2 transition-colors"
-            >
-              Ver ranking completo
-            </button>
-          </div>
         </div>
 
-        {/* Derecha: gráfico + inversión */}
-        <div className="space-y-4">
-          <div className={`${theme.card} p-5 h-full flex flex-col gap-4`}>
+        {/* Derecha: gráfico */}
+        <div>
+          <div className={`${theme.card} p-4 md:p-5 h-full flex flex-col gap-3`}>
             <div className="flex items-start justify-between gap-3 flex-shrink-0">
               <div>
                 <h3 className={theme.headingMedium}>Progreso por bloque</h3>
                 <p className={theme.textSubtle}>Cómo avanzas por cada tema</p>
               </div>
             </div>
-            <div className="flex-1 min-h-[200px] w-full min-w-0">
+            <div className="flex-1 min-h-[70px] w-full min-w-0 lg:min-h-[90px]">
               <ResponsiveBar
                 data={progressChartData}
                 keys={['progress']}
                 indexBy="name"
                 layout="vertical"
-                margin={{ top: 8, right: 24, bottom: 48, left: 48 }}
+                margin={{ top: 2, right: 16, bottom: 28, left: 36 }}
                 padding={0.3}
                 valueScale={{ type: 'linear', min: 0, max: 100 }}
                 indexScale={{ type: 'band', round: true }}
@@ -377,9 +330,9 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Fila inferior: inversión | recompensas | actividad — inversión primero para que no quede tapada */}
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-4">
-        <div className="lg:col-span-1 order-1 lg:order-1">
+      {/* Fila inferior: inversión | fondo de ahorro */}
+      <div className="mt-3 grid grid-cols-1 gap-4 lg:gap-3 lg:grid-cols-3">
+        <div className="lg:col-span-1">
           <div className={`${theme.card} p-5 flex flex-col gap-3 h-full`}>
             <div className="flex items-center justify-between mb-1">
               <div>
@@ -414,7 +367,7 @@ export const Dashboard = () => {
             </button>
           </div>
         </div>
-        <div className="lg:col-span-2 order-2 lg:order-2">
+        <div className="lg:col-span-2">
           <div className={`${theme.card} p-5 h-full flex flex-col gap-4`}>
             <div className="flex justify-between items-center mb-1">
               <div>
@@ -452,27 +405,6 @@ export const Dashboard = () => {
               Abrir Fondo de Ahorro
               <ArrowRight size={12} />
             </button>
-          </div>
-        </div>
-
-        <div className="space-y-4 order-3 lg:order-3 lg:col-span-1">
-          <div className={`${theme.card} p-4 text-[11px] space-y-2`}>
-            <div className="flex items-center gap-2">
-              <Sparkles size={14} className="text-finomik-primary" />
-              <span className="font-semibold text-finomik-primary">Actividad reciente</span>
-            </div>
-            {lastCompletedNode ? (
-              <p className="text-[color:var(--finomik-blue-5)]">
-                Último módulo completado:{' '}
-                <span className="font-semibold text-finomik-primary">
-                  {lastCompletedNode.title}
-                </span>
-              </p>
-            ) : (
-              <p className="text-[color:var(--finomik-blue-5)]">
-                Aún no has completado ningún módulo. Empieza con el primer capítulo del mapa.
-              </p>
-            )}
           </div>
         </div>
       </div>

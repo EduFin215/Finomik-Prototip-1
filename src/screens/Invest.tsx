@@ -356,8 +356,8 @@ export const Invest = () => {
           </p>
         </div>
       </div>
-      <div className="-mx-2 overflow-x-auto">
-        <div className="flex gap-3 px-2 pb-1 min-w-max">
+      <div className="sm:-mx-2 sm:overflow-x-auto">
+        <div className="flex flex-col sm:flex-row gap-3 px-0 sm:px-2 pb-1 sm:min-w-max">
           {ASSETS.map(asset => {
             const isSelected = effectiveSelectedSymbol === asset.symbol;
             const price = latestPriceBySymbol[asset.symbol] || asset.basePrice;
@@ -365,7 +365,7 @@ export const Invest = () => {
               <button
                 key={asset.symbol}
                 onClick={() => setSelectedSymbol(asset.symbol)}
-                className={`flex-none w-56 rounded-2xl border px-4 py-3 text-left transition-colors ${
+                className={`w-full sm:flex-none sm:w-56 rounded-2xl border px-4 py-3 text-left transition-colors ${
                   isSelected
                     ? 'border-finomik-primary bg-finomik-blue-soft'
                     : 'border-[color:var(--finomik-blue-6)] bg-white hover:border-finomik-primary/50'

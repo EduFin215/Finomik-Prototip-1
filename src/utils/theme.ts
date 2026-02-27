@@ -7,8 +7,8 @@ export const getTheme = (mode: ThemeMode) => {
     // Layout & Container
     container: 'bg-white',
     contentPadding: isYoung
-      ? 'p-6 space-y-6 pb-12'
-      : 'p-8 max-w-5xl mx-auto space-y-8 pb-12',
+      ? 'p-6 space-y-5 pb-10'
+      : 'px-4 py-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-3 lg:space-y-4 pb-4',
     
     // Cards
     card: isYoung 

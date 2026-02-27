@@ -42,10 +42,17 @@ const LayoutAlumno = () => {
 
   return (
     <div
-      className={`flex min-h-screen bg-white text-finomik-primary selection:bg-finomik-blue-soft text-body ${isWorldMap ? 'h-screen overflow-hidden' : ''}`}
+      className={`flex min-h-screen bg-white text-finomik-primary selection:bg-finomik-blue-soft text-body ${
+        isWorldMap ? 'h-screen overflow-hidden' : ''
+      }`}
     >
       <SidebarAlumno />
-      <main className={`flex-1 flex flex-col ${isWorldMap ? 'min-w-0 overflow-hidden' : ''}`} style={{ marginLeft: '16rem' }}>
+      <main
+        className={`flex-1 flex flex-col min-w-0 ${
+          isWorldMap ? 'overflow-hidden' : ''
+        }`}
+        style={{ marginLeft: '16rem' }}
+      >
         <ScreenRouter />
       </main>
       <AIAssistant />
