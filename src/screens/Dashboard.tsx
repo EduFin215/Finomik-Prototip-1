@@ -142,7 +142,8 @@ export const Dashboard = () => {
 
         <motion.div
           whileHover={theme.animation.whileHover}
-          className="bg-finomik-gradient-strong text-white p-4 md:p-5 rounded-2xl relative overflow-hidden shadow-md"
+          className="bg-finomik-gradient-strong text-white p-4 md:p-5 rounded-2xl relative overflow-hidden shadow-md cursor-pointer"
+          onClick={() => setCurrentScreen('userPersona')}
         >
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-12 -mt-16" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-10 mb-[-2rem]" />

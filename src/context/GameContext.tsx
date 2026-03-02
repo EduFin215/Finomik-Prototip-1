@@ -10,7 +10,8 @@ export type Screen =
   | 'news'
   | 'profile'
   | 'certificate'
-  | 'sessionSummary';
+  | 'sessionSummary'
+  | 'userPersona';
 
 export type InvestorLevel = 1 | 2 | 3 | 4;
 

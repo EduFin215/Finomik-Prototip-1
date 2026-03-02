@@ -18,6 +18,7 @@ import { News } from './screens/News';
 import { Profile } from './screens/Profile';
 import { Certificate } from './screens/Certificate';
 import { SessionSummaryScreen } from './screens/SessionSummaryScreen';
+import { UserPersona } from './screens/UserPersona';
 import { AIAssistant } from './components/AIAssistant';
 
 const ScreenRouter = () => {
@@ -32,6 +33,7 @@ const ScreenRouter = () => {
     case 'profile': return <Profile />;
     case 'certificate': return <Certificate />;
     case 'sessionSummary': return <SessionSummaryScreen />;
+    case 'userPersona': return <UserPersona />;
     default: return <Dashboard />;
   }
 };
