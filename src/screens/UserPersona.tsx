@@ -222,7 +222,7 @@ export const UserPersona = () => {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => setCurrentScreen('profile')}
+            onClick={() => setCurrentScreen('avatarShop')}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-finomik-primary text-white px-4 py-2.5 text-sm font-semibold shadow-sm hover:opacity-95 transition-opacity shrink-0"
           >
             Cambiar avatar

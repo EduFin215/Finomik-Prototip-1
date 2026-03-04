@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Users, AlertCircle, BookOpen, TrendingUp, ChevronRight } from 'lucide-react';
+import { Users, AlertCircle, BookOpen, TrendingUp, Mail, ChevronRight } from 'lucide-react';
 import { mockClassMetrics, mockAlerts, mockStudents } from '../../data/mockProfessorData';
 
 interface DashboardProps {
-    onNavigate: (view: 'cohort' | 'alerts') => void;
+    onNavigate: (view: 'cohort' | 'alerts' | 'messages') => void;
 }
 
 export const ProfessorDashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
@@ -111,6 +111,13 @@ export const ProfessorDashboard: React.FC<DashboardProps> = ({ onNavigate }) => 
                             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                                 <AlertCircle className="text-finomik-error shrink-0" size={20} />
                                 <span className="font-semibold text-finomik-primary text-sm sm:text-base truncate">Revisar Alertas Críticas</span>
+                            </div>
+                            <ChevronRight size={18} className="text-[color:var(--finomik-blue-5)] shrink-0" />
+                        </button>
+                        <button onClick={() => onNavigate('messages')} className="w-full flex items-center justify-between gap-3 p-3 sm:p-4 bg-finomik-blue-soft/30 rounded-xl hover:bg-finomik-blue-soft/50 transition-colors border border-[color:var(--finomik-blue-6)] text-left">
+                            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                <Mail className="text-finomik-primary shrink-0" size={20} />
+                                <span className="font-semibold text-finomik-primary text-sm sm:text-base truncate">Enviar Mensaje a la Clase</span>
                             </div>
                             <ChevronRight size={18} className="text-[color:var(--finomik-blue-5)] shrink-0" />
                         </button>

@@ -13,22 +13,79 @@ import { TypewriterHighlight } from '../components/TypewriterHighlight';
 import { ChapterPath } from '../components/ChapterPath';
 
 // Icon mapping for minigames
-const MinigameIcon = ({ type, className }: { type: MinigameType, className?: string }) => {
+const MinigameIcon = ({ type, className, style }: { type: MinigameType; className?: string; style?: React.CSSProperties }) => {
   switch (type) {
-    case 'mcq': return <ListChecks className={className} />;
-    case 'true_false': return <CheckCircle2 className={className} />;
-    case 'fill_blank': return <PenTool className={className} />;
-    case 'case': return <Briefcase className={className} />;
-    case 'order': return <ArrowDownUp className={className} />;
-    case 'match': return <Puzzle className={className} />;
-    case 'speed': return <Zap className={className} />;
-    case 'pasapalabra': return <CircleDashed className={className} />;
-    default: return <Star className={className} />;
+    case 'mcq': return <ListChecks className={className} style={style} />;
+    case 'true_false': return <CheckCircle2 className={className} style={style} />;
+    case 'fill_blank': return <PenTool className={className} style={style} />;
+    case 'case': return <Briefcase className={className} style={style} />;
+    case 'order': return <ArrowDownUp className={className} style={style} />;
+    case 'match': return <Puzzle className={className} style={style} />;
+    case 'speed': return <Zap className={className} style={style} />;
+    case 'pasapalabra': return <CircleDashed className={className} style={style} />;
+    default: return <Star className={className} style={style} />;
   }
 };
 
+const hexToRgba = (hex: string, alpha: number): string => {
+  const cleaned = hex.replace('#', '');
+  const r = parseInt(cleaned.slice(0, 2), 16);
+  const g = parseInt(cleaned.slice(2, 4), 16);
+  const b = parseInt(cleaned.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+};
+
+const getOnPrimaryForHex = (hex: string): string => {
+  const cleaned = hex.replace('#', '');
+  if (cleaned.length !== 6) return '#FFFFFF';
+  const r = parseInt(cleaned.slice(0, 2), 16) / 255;
+  const g = parseInt(cleaned.slice(2, 4), 16) / 255;
+  const b = parseInt(cleaned.slice(4, 6), 16) / 255;
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luminance > 0.7 ? '#114076' : '#FFFFFF';
+};
+
+const chapterThemeById: Record<number, { primary: string; primaryLight: string; onPrimary: string; border: string }> = {
+  1: {
+    primary: '#114076',
+    primaryLight: '#3C4C67',
+    onPrimary: getOnPrimaryForHex('#114076'),
+    border: '#114076',
+  },
+  2: {
+    primary: '#3C4C67',
+    primaryLight: '#3E5374',
+    onPrimary: getOnPrimaryForHex('#3C4C67'),
+    border: '#3C4C67',
+  },
+  3: {
+    primary: '#3E5374',
+    primaryLight: '#5574A7',
+    onPrimary: getOnPrimaryForHex('#3E5374'),
+    border: '#3E5374',
+  },
+  4: {
+    primary: '#5574A7',
+    primaryLight: '#8F9EB7',
+    onPrimary: getOnPrimaryForHex('#5574A7'),
+    border: '#5574A7',
+  },
+  5: {
+    primary: '#8F9EB7',
+    primaryLight: '#C8D0DD',
+    onPrimary: getOnPrimaryForHex('#8F9EB7'),
+    border: '#8F9EB7',
+  },
+  6: {
+    primary: '#C8D0DD',
+    primaryLight: '#FFFFFF',
+    onPrimary: getOnPrimaryForHex('#C8D0DD'),
+    border: '#C8D0DD',
+  },
+};
+
 export const WorldMap = () => {
-  const { user, completeLesson, completeLessonWithMonthlyCycle, setCurrentScreen, themeMode, navigationMode, toggleNavigationMode, autoCompleteChapter } = useGame();
+  const { user, setUser, completeLesson, completeLessonWithMonthlyCycle, setCurrentScreen, themeMode, navigationMode, toggleNavigationMode, autoCompleteChapter } = useGame();
   const theme = getTheme(themeMode);
   
   // Layout State
@@ -39,6 +96,7 @@ export const WorldMap = () => {
   const [activeChapterId, setActiveChapterId] = useState<number>(1);
 
   const learningPath = getLearningPathForChapter(activeChapterId);
+  const chapterTheme = chapterThemeById[activeChapterId] ?? chapterThemeById[1];
 
   // Content State
   const [minigameState, setMinigameState] = useState<any>({});
@@ -109,6 +167,14 @@ export const WorldMap = () => {
         setCurrentScreen('sessionSummary');
       } else {
         completeLesson(currentNode.id, currentNode.type === 'minigame');
+      }
+
+      // Marca la clase previa a Fondo de Ahorro como completada cuando se supera su mini test final
+      if (currentNode.id === 'c2_savings_class_final_quiz') {
+        setUser(prev => ({
+          ...prev,
+          hasCompletedSavingsClass: true,
+        }));
       }
     }
     setIsStepCompleted(true);
@@ -226,7 +292,10 @@ export const WorldMap = () => {
   const heightClass = themeMode === 'young' ? 'h-[calc(100vh-64px)]' : 'h-[calc(100vh-80px)]';
 
   return (
-    <div className={`flex ${heightClass} ${theme.container} overflow-hidden`}>
+    <div
+      className={`flex ${heightClass} overflow-hidden`}
+      style={{ backgroundColor: hexToRgba(chapterTheme.primary, 0.06), transition: 'background-color 0.5s ease' }}
+    >
       {/* Sidebar Overlay for Mobile */}
       {isSidebarOpen && (
         <div 
@@ -303,22 +372,29 @@ export const WorldMap = () => {
                 }}
                 className={`w-full p-3 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} border text-left flex items-center gap-3 transition-all
                   ${isCurrent 
-                    ? (themeMode === 'young' ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' : 'bg-slate-100 border-slate-300 font-semibold')
+                    ? 'ring-1 font-semibold'
                     : isCompleted 
                       ? 'bg-white border-slate-200 hover:bg-slate-50' 
                       : isLocked 
                         ? 'bg-slate-50 border-slate-100 opacity-60' 
                         : 'bg-white border-slate-200 hover:bg-slate-50 opacity-80'}`}
+                style={isCurrent ? { backgroundColor: hexToRgba(chapterTheme.primary, 0.10), borderColor: chapterTheme.primary, boxShadow: `0 0 0 1px ${chapterTheme.primary}` } : undefined}
               >
-                <div className={`w-8 h-8 ${theme.iconContainer} flex items-center justify-center shrink-0
-                  ${isCompleted ? 'bg-green-500 text-white' : isCurrent ? (themeMode === 'young' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-white') : isLocked ? 'bg-slate-200 text-slate-400' : 'bg-white border-2 border-slate-200 text-slate-400'}`}>
+                <div
+                  className={`w-8 h-8 ${theme.iconContainer} flex items-center justify-center shrink-0
+                  ${isCompleted ? 'bg-green-500 text-white' : isLocked ? 'bg-slate-200 text-slate-400' : !isCurrent ? 'bg-white border-2 border-slate-200 text-slate-400' : ''}`}
+                  style={isCurrent ? { backgroundColor: chapterTheme.primary, color: chapterTheme.onPrimary } : undefined}
+                >
                   {isCompleted ? <Check size={14} /> : isLocked ? <Lock size={14} /> : node.type === 'lesson' ? <Video size={14} /> : <MinigameIcon type={node.minigameType!} className="w-4 h-4" />}
                 </div>
                 <div className="min-w-0">
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
                     {node.type === 'lesson' ? 'Lección' : 'Reto'}
                   </div>
-                  <div className={`text-sm font-bold truncate ${isCurrent ? (themeMode === 'young' ? 'text-blue-700' : 'text-slate-900') : 'text-slate-700'}`}>
+                  <div
+                    className="text-sm font-bold truncate"
+                    style={{ color: isCurrent ? chapterTheme.primary : '#334155' }}
+                  >
                     {node.title}
                   </div>
                 </div>
@@ -331,55 +407,63 @@ export const WorldMap = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full relative">
         {/* Top Bar */}
-        <div className="h-16 border-b border-slate-200 bg-white flex items-center px-4 justify-between shrink-0">
+        <div
+          className="h-16 border-b flex items-center px-4 justify-between shrink-0 transition-colors duration-500"
+          style={{ backgroundColor: chapterTheme.primary, borderBottomColor: hexToRgba(chapterTheme.onPrimary, 0.15) }}
+        >
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-slate-100 rounded-lg text-slate-600"
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: chapterTheme.onPrimary }}
             >
               <Menu size={24} />
             </button>
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span
+                className="text-[10px] font-bold uppercase tracking-wider"
+                style={{ color: hexToRgba(chapterTheme.onPrimary, 0.7) }}
+              >
                 {currentNode.type === 'lesson' ? 'Lección Actual' : 'Reto Actual'}
               </span>
-              <h2 className={theme.headingMedium}>{currentNode.title}</h2>
+              <h2 className="text-base font-bold" style={{ color: chapterTheme.onPrimary }}>{currentNode.title}</h2>
             </div>
           </div>
           
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsNotesOpen(true)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-colors mr-2
-                ${themeMode === 'young' 
-                  ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' 
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm transition-colors mr-2"
+              style={{ backgroundColor: hexToRgba(chapterTheme.onPrimary, 0.15), color: chapterTheme.onPrimary }}
             >
               <BookOpen size={18} />
               <span className="hidden sm:inline">Ver Apuntes</span>
             </button>
 
             <div className="hidden md:flex flex-col items-end mr-2">
-              <span className="text-xs text-slate-400">Progreso</span>
-              <span className={`text-sm font-bold ${themeMode === 'young' ? 'text-blue-600' : 'text-slate-700'}`}>
+              <span className="text-xs" style={{ color: hexToRgba(chapterTheme.onPrimary, 0.7) }}>Progreso</span>
+              <span className="text-sm font-bold" style={{ color: chapterTheme.onPrimary }}>
                 {learningPath.length > 0 ? Math.round((currentIndex / learningPath.length) * 100) : 0}%
               </span>
             </div>
-            <div className={`w-24 ${theme.progressBar} bg-slate-100 overflow-hidden`}>
+            <div className={`w-24 ${theme.progressBar} overflow-hidden`} style={{ backgroundColor: hexToRgba(chapterTheme.onPrimary, 0.2) }}>
               <div 
-                className={`h-full ${themeMode === 'young' ? 'bg-blue-600' : 'bg-slate-800'} transition-all duration-500`}
-                style={{ width: `${learningPath.length > 0 ? (currentIndex / learningPath.length) * 100 : 0}%` }}
+                className="h-full transition-all duration-500"
+                style={{ 
+                  width: `${learningPath.length > 0 ? (currentIndex / learningPath.length) * 100 : 0}%`,
+                  backgroundColor: chapterTheme.onPrimary,
+                }}
               />
             </div>
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div className={`flex-1 overflow-y-auto ${theme.container} p-4 md:p-8`}>
-          <div className={`max-w-3xl mx-auto ${theme.card} overflow-hidden min-h-[500px] flex flex-col`}>
+        {/* Content */}
+        <div className="flex-1 min-h-0 overflow-hidden p-3 md:p-4 bg-slate-50">
+          <div className={`max-w-3xl mx-auto ${theme.card} overflow-hidden h-full flex flex-col`}>
             
-            {/* Content Body */}
-            <div className="flex-1 p-6 md:p-10">
+            {/* Content Body — no scroll, centered vertically */}
+            <div className="flex-1 min-h-0 overflow-hidden p-4 md:p-6 flex flex-col justify-center">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentNode.id}
@@ -403,16 +487,16 @@ export const WorldMap = () => {
                     // Layout por defecto o para capítulos distintos de 2: vídeo + texto (una sección por página)
                     if (!isChapter2 || layout === 'mixed') {
                       return (
-                        <div className="space-y-8">
-                          <div className={`w-full aspect-video bg-slate-900 ${themeMode === 'young' ? 'rounded-2xl' : 'rounded-lg'} flex items-center justify-center relative overflow-hidden group shadow-lg`}>
+                        <div className="space-y-4">
+                          <div className={`w-full h-44 bg-slate-900 ${themeMode === 'young' ? 'rounded-2xl' : 'rounded-lg'} flex items-center justify-center relative overflow-hidden group shadow-lg`}>
                             <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/60 to-transparent" />
-                            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-110 transition-transform cursor-pointer">
-                              <Play size={40} className="text-white ml-2" fill="white" />
+                            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-110 transition-transform cursor-pointer">
+                              <Play size={28} className="text-white ml-1" fill="white" />
                             </div>
                           </div>
 
                           {section && (
-                            <div className="prose prose-lg prose-slate max-w-none space-y-3">
+                            <div className="max-w-none space-y-2">
                               {hasMultiplePages && (
                                 <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
                                   Página {currentPage + 1} de {totalPages}
@@ -436,7 +520,7 @@ export const WorldMap = () => {
                     // Capítulo 2: solo texto corto e interactivo (una sección por página)
                     if (layout === 'text_only') {
                       return (
-                        <div className="space-y-8">
+                        <div className="space-y-4">
                           {section && (
                             <div className="flex flex-col items-start gap-4">
                               {hasMultiplePages && (
@@ -460,11 +544,11 @@ export const WorldMap = () => {
                     // Capítulo 2: solo vídeo + descripción corta
                     if (layout === 'video_only') {
                       return (
-                        <div className="space-y-6">
-                          <div className={`w-full aspect-video bg-slate-900 ${themeMode === 'young' ? 'rounded-2xl' : 'rounded-lg'} flex items-center justify-center relative overflow-hidden group shadow-lg`}>
+                        <div className="space-y-4">
+                          <div className={`w-full h-44 bg-slate-900 ${themeMode === 'young' ? 'rounded-2xl' : 'rounded-lg'} flex items-center justify-center relative overflow-hidden group shadow-lg`}>
                             <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/60 to-transparent" />
-                            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-110 transition-transform cursor-pointer">
-                              <Play size={40} className="text-white ml-2" fill="white" />
+                            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-110 transition-transform cursor-pointer">
+                              <Play size={28} className="text-white ml-1" fill="white" />
                             </div>
                           </div>
                           <div className="text-center space-y-2">
@@ -484,10 +568,19 @@ export const WorldMap = () => {
 
                   {/* --- MINIGAME RENDER --- */}
                   {currentNode.type === 'minigame' && (
-                    <div className="space-y-8 flex-1 flex flex-col justify-center">
-                      <div className="text-center mb-6">
-                        <div className={`w-20 h-20 ${themeMode === 'young' ? 'bg-blue-50 rounded-full border-4 border-white' : 'bg-slate-100 rounded-lg'} flex items-center justify-center mx-auto mb-4 shadow-sm`}>
-                          <MinigameIcon type={currentNode.minigameType!} className={`w-10 h-10 ${themeMode === 'young' ? 'text-blue-600' : 'text-slate-700'}`} />
+                    <div className="space-y-4 flex-1 flex flex-col justify-center">
+                      <div className="text-center mb-3">
+                        <div
+                          className={`w-14 h-14 ${themeMode === 'young' ? 'rounded-full border-4 border-white' : 'rounded-lg'} flex items-center justify-center mx-auto mb-3 shadow-sm`}
+                          style={themeMode === 'young'
+                            ? { backgroundColor: chapterTheme.primary, borderColor: '#ffffff' }
+                            : { backgroundColor: '#e5e7eb', borderColor: chapterTheme.border }}
+                        >
+                          <MinigameIcon 
+                            type={currentNode.minigameType!} 
+                            className="w-7 h-7" 
+                            style={{ color: themeMode === 'young' ? chapterTheme.onPrimary : chapterTheme.primary }}
+                          />
                         </div>
                         <h3 className={theme.headingLarge}>{currentNode.title}</h3>
                         <p className={theme.textSubtle}>{currentNode.description}</p>
@@ -505,18 +598,27 @@ export const WorldMap = () => {
                       )}
 
                       {/* Game UI */}
-                      <div className={`${themeMode === 'young' ? 'bg-slate-50 rounded-2xl border border-slate-100' : 'bg-white border-t border-slate-100'} p-6 md:p-8`}>
+                      <div
+                        className={`${themeMode === 'young' ? 'rounded-2xl border' : 'border-t'} p-4 md:p-6 transition-colors duration-500`}
+                        style={
+                          (currentNode.minigameType === 'case' || currentNode.minigameType === 'pasapalabra')
+                            ? { backgroundColor: hexToRgba(chapterTheme.primary, 0.10), borderColor: hexToRgba(chapterTheme.primary, 0.18) }
+                            : themeMode === 'young'
+                              ? { backgroundColor: '#f8fafc', borderColor: '#f1f5f9' }
+                              : { backgroundColor: '#ffffff', borderColor: '#f1f5f9' }
+                        }
+                      >
                         {/* MCQ */}
                         {currentNode.minigameType === 'mcq' && (
                           <div className="space-y-4">
-                            <h4 className="font-bold text-xl text-center mb-6">{currentNode.data.question}</h4>
-                            <div className="grid gap-3">
+                            <h4 className="font-semibold text-base text-center mb-4">{currentNode.data.question}</h4>
+                            <div className="grid gap-2">
                               {currentNode.data.options.map((opt: string, idx: number) => (
                                 <button 
                                   key={idx} 
                                   onClick={() => handleMCQ(idx)} 
                                   disabled={isStepCompleted}
-                                  className={`w-full p-4 text-left ${themeMode === 'young' ? 'rounded-xl border-2' : 'rounded-md border'} bg-white border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all font-medium text-slate-700 shadow-sm`}
+                                  className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium transition-all"
                                 >
                                   {opt}
                                 </button>
@@ -527,26 +629,44 @@ export const WorldMap = () => {
 
                         {/* True/False */}
                         {currentNode.minigameType === 'true_false' && (
-                          <div className="space-y-8 text-center">
-                            <h4 className="font-bold text-xl">{currentNode.data.question}</h4>
-                            <div className="flex gap-4 max-w-md mx-auto">
-                              <button onClick={() => handleTrueFalse(true)} disabled={isStepCompleted} className={`flex-1 py-8 ${themeMode === 'young' ? 'rounded-2xl border-2' : 'rounded-md border'} bg-white border-green-200 text-green-700 font-bold hover:bg-green-50 shadow-sm text-lg`}>Verdadero</button>
-                              <button onClick={() => handleTrueFalse(false)} disabled={isStepCompleted} className={`flex-1 py-8 ${themeMode === 'young' ? 'rounded-2xl border-2' : 'rounded-md border'} bg-white border-red-200 text-red-700 font-bold hover:bg-red-50 shadow-sm text-lg`}>Falso</button>
+                          <div className="space-y-4 text-center">
+                            <h4 className="font-semibold text-base">{currentNode.data.question}</h4>
+                            <div className="flex gap-3 max-w-md mx-auto">
+                              <button onClick={() => handleTrueFalse(true)} disabled={isStepCompleted} className="flex-1 py-3 rounded-xl border border-emerald-200 bg-white hover:bg-emerald-50 font-semibold text-emerald-700 text-sm">Verdadero</button>
+                              <button onClick={() => handleTrueFalse(false)} disabled={isStepCompleted} className="flex-1 py-3 rounded-xl border border-red-200 bg-white hover:bg-red-50 font-semibold text-red-700 text-sm">Falso</button>
                             </div>
                           </div>
                         )}
 
                         {/* Fill Blank */}
                         {currentNode.minigameType === 'fill_blank' && (
-                          <div className="space-y-8">
-                            <div className={`text-xl font-medium text-center leading-relaxed p-6 bg-white ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} border border-slate-200 shadow-sm`}>
+                          <div className="space-y-4">
+                            <div className={`text-xl font-medium text-center leading-relaxed p-6 bg-white ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} border shadow-sm`}
+                                 style={{ borderColor: chapterTheme.primary }}>
                               {currentNode.data.parts[0]}
-                              <span className="inline-block w-32 border-b-2 border-blue-500 mx-2 text-blue-600 font-bold text-center bg-blue-50 px-2 rounded-t">?</span>
+                              <span
+                                className="inline-block w-32 mx-2 font-bold text-center px-2 rounded-t"
+                                style={{
+                                  borderBottomWidth: 2,
+                                  borderBottomStyle: 'solid',
+                                  borderBottomColor: chapterTheme.primary,
+                                  color: chapterTheme.primary,
+                                  backgroundColor: '#f1f5f9',
+                                }}
+                              >
+                                ?
+                              </span>
                               {currentNode.data.parts[1]}
                             </div>
                             <div className="flex flex-wrap justify-center gap-3">
                               {currentNode.data.options.map((opt: string) => (
-                                <button key={opt} onClick={() => handleFillBlank(opt)} disabled={isStepCompleted} className={`px-6 py-3 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} bg-white border border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-slate-700 font-bold shadow-sm transition-all`}>
+                                <button 
+                                  key={opt} 
+                                  onClick={() => handleFillBlank(opt)} 
+                                  disabled={isStepCompleted} 
+                                  className={`px-6 py-3 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} bg-white border text-slate-700 font-bold shadow-sm transition-all`}
+                                  style={!isStepCompleted ? { borderColor: chapterTheme.primary } : undefined}
+                                >
                                   {opt}
                                 </button>
                               ))}
@@ -577,7 +697,10 @@ export const WorldMap = () => {
                               <div className="space-y-6">
                                 {showingSteps ? (
                                   <>
-                                    <div className={`bg-white p-6 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} border-l-4 border-blue-500 shadow-sm`}>
+                                    <div 
+                                      className={`bg-white p-6 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} border-l-4 shadow-sm`}
+                                      style={{ borderLeftColor: chapterTheme.primary }}
+                                    >
                                       <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
                                         Paso {caseStepIndex + 1} de {steps.length}
                                       </div>
@@ -588,7 +711,7 @@ export const WorldMap = () => {
                                       <button
                                         type="button"
                                         onClick={() => setCaseStepIndex((i) => i + 1)}
-                                        className={`px-6 py-3 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors`}
+                                        className="px-6 py-3 rounded-xl shadow-lg font-bold text-white bg-finomik-primary hover:opacity-90 transition-all"
                                       >
                                         {caseStepIndex < steps.length - 1 ? 'Siguiente' : 'Ver resumen y decidir'}
                                       </button>
@@ -614,9 +737,10 @@ export const WorldMap = () => {
                                             </ul>
                                           )}
                                         </div>
-                                        <div className={`${themeMode === 'young' ? 'rounded-xl' : 'rounded-lg'} bg-blue-50 border border-blue-100 p-4 shadow-sm`}>
-                                          <div className="text-[10px] font-bold uppercase text-blue-600">{summary.marginLabel}</div>
-                                          <div className="text-xl font-extrabold text-blue-800">{margin} €</div>
+                                        <div className={`${themeMode === 'young' ? 'rounded-xl' : 'rounded-lg'} p-4 shadow-sm`}
+                                             style={{ backgroundColor: '#f1f5f9', border: `1px solid ${chapterTheme.primary}` }}>
+                                          <div className="text-[10px] font-bold uppercase" style={{ color: chapterTheme.primary }}>{summary.marginLabel}</div>
+                                          <div className="text-xl font-extrabold" style={{ color: chapterTheme.primary }}>{margin} €</div>
                                         </div>
                                         <div className={`${themeMode === 'young' ? 'rounded-xl' : 'rounded-lg'} bg-amber-50 border border-amber-100 p-4 shadow-sm`}>
                                           <div className="text-[10px] font-bold uppercase text-amber-700">{summary.goalLabel}</div>
@@ -633,7 +757,8 @@ export const WorldMap = () => {
                                             key={idx}
                                             onClick={() => handleCase(opt.correct, opt.feedback)}
                                             disabled={isStepCompleted}
-                                            className={`w-full p-5 text-left ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} bg-white border border-slate-200 hover:bg-blue-50 hover:border-blue-300 transition-all font-medium shadow-sm`}
+                                            className={`w-full p-5 text-left ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} bg-white border border-slate-200 transition-all font-medium shadow-sm`}
+                                            style={!isStepCompleted ? { borderColor: chapterTheme.primary } : undefined}
                                           >
                                             {opt.text}
                                           </button>
@@ -648,12 +773,21 @@ export const WorldMap = () => {
 
                           return (
                             <div className="space-y-6">
-                              <div className={`bg-white p-6 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} text-slate-700 italic border-l-4 border-blue-500 shadow-sm text-lg`}>
+                              <div
+                                className={`bg-white p-6 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} text-slate-700 italic border-l-4 shadow-sm text-lg`}
+                                style={{ borderLeftColor: chapterTheme.primary }}
+                              >
                                 "{currentNode.data.scenario}"
                               </div>
                               <div className="space-y-3">
                                 {options.map((opt: any, idx: number) => (
-                                  <button key={idx} onClick={() => handleCase(opt.correct, opt.feedback)} disabled={isStepCompleted} className={`w-full p-5 text-left ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} bg-white border border-slate-200 hover:bg-blue-50 hover:border-blue-300 transition-all font-medium shadow-sm`}>
+                                  <button
+                                    key={idx}
+                                    onClick={() => handleCase(opt.correct, opt.feedback)}
+                                    disabled={isStepCompleted}
+                                    className={`w-full p-5 text-left ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} bg-white border transition-all font-medium shadow-sm`}
+                                    style={!isStepCompleted ? { borderColor: chapterTheme.primary } : { borderColor: '#e2e8f0' }}
+                                  >
                                     {opt.text}
                                   </button>
                                 ))}
@@ -675,7 +809,11 @@ export const WorldMap = () => {
                                     onClick={() => handleOrderItemClick(item.id)}
                                     disabled={isSelected || isStepCompleted}
                                     className={`w-full p-4 ${themeMode === 'young' ? 'rounded-xl border-2' : 'rounded-md border'} font-bold flex justify-between items-center transition-all shadow-sm
-                                      ${isSelected ? 'bg-blue-600 text-white border-blue-600 scale-95' : 'bg-white border-slate-200 text-slate-700 hover:border-blue-300'}`}
+                                      ${isSelected ? 'text-white scale-95' : 'bg-white text-slate-700'}`}
+                                    style={isSelected
+                                      ? { backgroundColor: chapterTheme.primary, borderColor: chapterTheme.primary, color: chapterTheme.onPrimary }
+                                      : { borderColor: chapterTheme.primary }
+                                    }
                                   >
                                     {item.text}
                                     {isSelected && <span className="text-xs bg-white/20 px-2 py-0.5 rounded font-bold">{orderSequence.indexOf(item.id) + 1}</span>}
@@ -683,7 +821,14 @@ export const WorldMap = () => {
                                  );
                               })}
                             </div>
-                            <button onClick={() => setOrderSequence([])} disabled={isStepCompleted} className="text-sm text-slate-400 hover:text-blue-600 font-medium w-full text-center py-2">Reiniciar Orden</button>
+                            <button
+                              onClick={() => setOrderSequence([])} 
+                              disabled={isStepCompleted} 
+                              className="text-sm font-medium w-full text-center py-2"
+                              style={{ color: chapterTheme.primary }}
+                            >
+                              Reiniciar Orden
+                            </button>
                           </div>
                         )}
 
@@ -694,12 +839,22 @@ export const WorldMap = () => {
                             <div className="grid grid-cols-2 gap-6">
                               <div className="space-y-3">
                                 {currentNode.data.pairs.map((p: any, i: number) => (
-                                  <div key={i} className={`p-4 bg-blue-50 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} text-sm font-bold text-blue-800 h-20 flex items-center justify-center border border-blue-100 shadow-sm`}>{p.left}</div>
+                                  <div
+                                    key={i}
+                                    className={`p-4 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} text-sm font-bold h-20 flex items-center justify-center border shadow-sm`}
+                                    style={{ backgroundColor: hexToRgba(chapterTheme.primary, 0.10), borderColor: hexToRgba(chapterTheme.primary, 0.2), color: chapterTheme.primary }}
+                                  >{p.left}</div>
                                 ))}
                               </div>
                               <div className="space-y-3">
                                 {currentNode.data.pairs.map((p: any, i: number) => (
-                                  <button key={i} onClick={() => handleMatch(i)} disabled={isStepCompleted} className={`w-full p-4 bg-white border-2 border-dashed border-slate-300 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} text-sm text-slate-600 h-20 flex items-center justify-center hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all font-medium`}>
+                                  <button
+                                    key={i}
+                                    onClick={() => handleMatch(i)}
+                                    disabled={isStepCompleted}
+                                    className={`w-full p-4 bg-white border-2 border-dashed ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} text-sm text-slate-600 h-20 flex items-center justify-center transition-all font-medium`}
+                                    style={{ borderColor: hexToRgba(chapterTheme.primary, 0.35) }}
+                                  >
                                     {p.right}
                                   </button>
                                 ))}
@@ -719,7 +874,13 @@ export const WorldMap = () => {
                             <h4 className="font-bold text-2xl">{currentNode.data.question}</h4>
                             <div className="grid grid-cols-2 gap-4">
                               {currentNode.data.options.map((opt: any, idx: number) => (
-                                <button key={idx} onClick={() => handleSpeed(opt.correct)} disabled={isStepCompleted} className={`py-8 bg-white border-b-4 border-slate-200 ${themeMode === 'young' ? 'rounded-2xl' : 'rounded-lg'} font-bold text-xl hover:bg-blue-600 hover:text-white hover:border-blue-800 transition-all active:translate-y-1 active:border-b-0`}>
+                                <button
+                                  key={idx}
+                                  onClick={() => handleSpeed(opt.correct)}
+                                  disabled={isStepCompleted}
+                                  className={`py-8 bg-white border-b-4 ${themeMode === 'young' ? 'rounded-2xl' : 'rounded-lg'} font-bold text-xl transition-all active:translate-y-1 active:border-b-0`}
+                                  style={{ borderBottomColor: chapterTheme.primary }}
+                                >
                                   {opt.text}
                                 </button>
                               ))}
@@ -732,13 +893,24 @@ export const WorldMap = () => {
                           <div className="space-y-8">
                             <div className="flex flex-wrap justify-center gap-2 mb-8">
                               {currentNode.data.questions.map((q: any, i: number) => {
-                                let statusColor = 'bg-white text-slate-400 border-slate-200';
-                                if (i === pasapalabraIndex) statusColor = 'bg-blue-600 text-white border-blue-600 scale-110 shadow-lg ring-4 ring-blue-100';
-                                else if (pasapalabraStatus[i] === 'correct') statusColor = 'bg-green-500 text-white border-green-500';
-                                else if (pasapalabraStatus[i] === 'incorrect') statusColor = 'bg-red-500 text-white border-red-500';
+                                let baseClasses = 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 flex items-center justify-center font-bold text-xs md:text-sm transition-all';
+                                let style: React.CSSProperties = { backgroundColor: '#ffffff', color: '#64748b', borderColor: '#e2e8f0' };
+                                if (i === pasapalabraIndex) {
+                                  style = {
+                                    backgroundColor: chapterTheme.primary,
+                                    color: chapterTheme.onPrimary,
+                                    borderColor: chapterTheme.primary,
+                                    boxShadow: '0 0 0 4px rgba(15,23,42,0.12)',
+                                    transform: 'scale(1.1)',
+                                  };
+                                } else if (pasapalabraStatus[i] === 'correct') {
+                                  style = { backgroundColor: '#22c55e', color: '#ffffff', borderColor: '#22c55e' };
+                                } else if (pasapalabraStatus[i] === 'incorrect') {
+                                  style = { backgroundColor: '#ef4444', color: '#ffffff', borderColor: '#ef4444' };
+                                }
                                 
                                 return (
-                                  <div key={q.letter} className={`w-8 h-8 md:w-10 md:h-10 rounded-full border-2 flex items-center justify-center font-bold text-xs md:text-sm transition-all ${statusColor}`}>
+                                  <div key={q.letter} className={baseClasses} style={style}>
                                     {q.letter}
                                   </div>
                                 );
@@ -746,7 +918,7 @@ export const WorldMap = () => {
                             </div>
 
                             <div className="text-center space-y-6 max-w-md mx-auto">
-                              <div className="text-6xl font-black text-blue-600 mb-2 opacity-20 select-none">
+                              <div className="text-6xl font-black mb-2 opacity-20 select-none" style={{ color: chapterTheme.primary }}>
                                 {currentNode.data.questions[pasapalabraIndex].letter}
                               </div>
                               <h4 className="font-bold text-xl text-[#0f172a] min-h-[60px] flex items-center justify-center">
@@ -760,13 +932,14 @@ export const WorldMap = () => {
                                   onChange={(e) => setPasapalabraInput(e.target.value)}
                                   placeholder="Respuesta..."
                                   disabled={isStepCompleted}
-                                  className={`w-full p-4 text-center text-xl font-bold border-2 border-slate-200 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} focus:border-blue-500 focus:outline-none uppercase tracking-widest bg-white shadow-sm`}
+                                  className={`w-full p-4 text-center text-xl font-bold border-2 ${themeMode === 'young' ? 'rounded-xl' : 'rounded-md'} focus:outline-none uppercase tracking-widest bg-white shadow-sm`}
+                                  style={{ borderColor: chapterTheme.primary }}
                                   autoFocus
                                 />
                                 <button 
                                   type="submit"
                                   disabled={!pasapalabraInput || isStepCompleted}
-                                  className={`w-full py-4 bg-blue-600 text-white font-bold ${themeMode === 'young' ? 'rounded-xl shadow-lg shadow-blue-200' : 'rounded-md shadow-none'} hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:shadow-none`}
+                                  className="w-full py-4 font-bold rounded-xl shadow-lg bg-finomik-primary text-white hover:opacity-90 transition-all disabled:opacity-50 disabled:shadow-none"
                                 >
                                   ENVIAR
                                 </button>
@@ -782,13 +955,13 @@ export const WorldMap = () => {
             </div>
 
             {/* Bottom Action Bar */}
-            <div className="p-4 md:p-6 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
+            <div className="p-3 border-t border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
               {isStepCompleted ? (
                 <div className="w-full flex justify-end">
-                  <button
-                    onClick={handleNext}
-                    className={`px-8 py-4 ${themeMode === 'young' ? 'bg-green-600 rounded-xl shadow-lg shadow-green-200 animate-bounce' : 'bg-slate-900 rounded-md shadow-none'} text-white font-bold hover:bg-opacity-90 transition-all flex items-center gap-2`}
-                  >
+                    <button
+                      onClick={handleNext}
+                      className="px-6 py-3 rounded-xl shadow-lg font-bold text-white bg-finomik-primary hover:opacity-90 transition-all flex items-center gap-2"
+                    >
                     Continuar <ChevronRight size={20} />
                   </button>
                 </div>
@@ -812,7 +985,7 @@ export const WorldMap = () => {
                       {onLastLessonPage ? (
                         <button
                           onClick={handleStepComplete}
-                          className={`px-8 py-4 ${themeMode === 'young' ? 'bg-[#0f172a] rounded-xl shadow-lg' : 'bg-slate-900 rounded-md shadow-none'} text-white font-bold hover:bg-slate-800 transition-all flex items-center gap-2`}
+                          className="px-6 py-3 rounded-xl shadow-lg font-bold text-white bg-finomik-primary hover:opacity-90 transition-all flex items-center gap-2"
                         >
                           Marcar como Leído <Check size={20} />
                         </button>
@@ -820,7 +993,7 @@ export const WorldMap = () => {
                         <button
                           type="button"
                           onClick={() => setLessonTextPageIndex((i) => i + 1)}
-                          className={`px-8 py-4 ${themeMode === 'young' ? 'bg-blue-600 rounded-xl shadow-lg' : 'bg-slate-700 rounded-md'} text-white font-bold hover:opacity-90 transition-all flex items-center gap-2`}
+                          className="px-6 py-3 rounded-xl shadow-lg font-bold text-white bg-finomik-primary hover:opacity-90 transition-all flex items-center gap-2"
                         >
                           Siguiente <ChevronRight size={20} />
                         </button>

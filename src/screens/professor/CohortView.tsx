@@ -3,8 +3,8 @@ import { motion } from 'motion/react';
 import { CohortSummary } from '../../components/professor/CohortSummary';
 import { AlertsPanel } from '../../components/professor/AlertsPanel';
 import { StudentList } from '../../components/professor/StudentList';
-import { LessonComparisonChart } from '../../components/professor/LessonComparisonChart';
-import { mockClassMetrics, mockAlerts, mockStudents, mockLessonDecisions } from '../../data/mockProfessorData';
+import { ModuleCompletionChart } from '../../components/professor/LessonComparisonChart';
+import { mockClassMetrics, mockAlerts, mockStudents, mockModuleCompletion } from '../../data/mockProfessorData';
 import { FileClock, Users, AlertCircle, Download } from 'lucide-react';
 
 type ViewState = 'normal' | 'empty' | 'not_activated' | 'finished';
@@ -73,8 +73,8 @@ export const CohortView: React.FC<CohortViewProps> = ({ onSelectStudent }) => {
               </div>
             </div>
 
-            {/* 3. Gráfico de decisiones de la clase (ancho completo debajo) */}
-            <LessonComparisonChart data={mockLessonDecisions} />
+            {/* 3. Gráfico de compleción de módulos (ancho completo debajo) */}
+            <ModuleCompletionChart data={mockModuleCompletion} />
           </motion.div>
         );
     }

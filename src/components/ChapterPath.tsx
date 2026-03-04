@@ -66,6 +66,15 @@ export const ChapterPath = ({ onChapterSelect }: ChapterPathProps) => {
   const theme = getTheme(themeMode);
   const certificateUnlocked = user.certificate !== null || user.completedModules.length >= 8;
 
+  const chapterThemes = [
+    { primary: '#114076', onPrimary: '#FFFFFF' },
+    { primary: '#3C4C67', onPrimary: '#FFFFFF' },
+    { primary: '#3E5374', onPrimary: '#FFFFFF' },
+    { primary: '#5574A7', onPrimary: '#FFFFFF' },
+    { primary: '#8F9EB7', onPrimary: '#114076' },
+    { primary: '#C8D0DD', onPrimary: '#114076' },
+  ];
+
   return (
     <div className={`w-full h-full overflow-y-auto ${theme.container} p-8 flex flex-col items-center`}>
       <div className="max-w-4xl w-full mx-auto space-y-12 relative">
@@ -95,6 +104,7 @@ export const ChapterPath = ({ onChapterSelect }: ChapterPathProps) => {
             const isLeft = index % 2 === 0;
             const isLocked = chapter.status === 'locked';
             const isCompleted = chapter.status === 'completed';
+            const chapterTheme = chapterThemes[index % chapterThemes.length];
             
             return (
               <motion.div 
@@ -119,16 +129,31 @@ export const ChapterPath = ({ onChapterSelect }: ChapterPathProps) => {
                       ${isLocked 
                         ? 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed' 
                         : isCompleted
-                          ? 'bg-blue-600 border-blue-200 text-white shadow-lg shadow-blue-200 scale-105'
-                          : 'bg-white border-blue-600 text-blue-600 hover:bg-blue-50 hover:scale-110 shadow-xl cursor-pointer'
+                          ? 'shadow-lg shadow-blue-200 scale-105'
+                          : 'hover:scale-110 shadow-xl cursor-pointer'
                       }
                     `}
+                    style={
+                      isLocked
+                        ? undefined
+                        : {
+                            backgroundColor: chapterTheme.primary,
+                            borderColor: chapterTheme.primary,
+                            color: chapterTheme.onPrimary,
+                          }
+                    }
                   >
                     {isLocked ? <Lock size={32} /> : isCompleted ? <Check size={32} strokeWidth={3} /> : chapter.icon}
                     
                     {/* Status Badge */}
                     {!isLocked && !isCompleted && (
-                      <div className="absolute -bottom-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                      <div
+                        className="absolute -bottom-2 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider"
+                        style={{
+                          backgroundColor: chapterTheme.primary,
+                          color: chapterTheme.onPrimary,
+                        }}
+                      >
                         Actual
                       </div>
                     )}

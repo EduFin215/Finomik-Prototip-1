@@ -1,14 +1,15 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Home, Users, AlertCircle, Edit3, LogOut, X } from 'lucide-react';
+import { Home, Users, AlertCircle, Edit3, Mail, LogOut, X } from 'lucide-react';
 
-export type ProfessorView = 'dashboard' | 'cohort' | 'alerts' | 'student' | 'intervention';
+export type ProfessorView = 'dashboard' | 'cohort' | 'alerts' | 'student' | 'intervention' | 'messages';
 
 const navItems: { id: ProfessorView; icon: React.ElementType; label: string }[] = [
   { id: 'dashboard', icon: Home, label: 'Inicio' },
   { id: 'cohort', icon: Users, label: 'Mi Clase' },
   { id: 'alerts', icon: AlertCircle, label: 'Alertas' },
   { id: 'intervention', icon: Edit3, label: 'Intervención' },
+  { id: 'messages', icon: Mail, label: 'Mensajes' },
 ];
 
 interface SidebarProfesorProps {

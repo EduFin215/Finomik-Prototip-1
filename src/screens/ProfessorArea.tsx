@@ -7,6 +7,7 @@ import { CohortView } from './professor/CohortView';
 import { AlertsView } from './professor/AlertsView';
 import { StudentDetailView } from './professor/StudentDetailView';
 import { InterventionView } from './professor/InterventionView';
+import { MessagesView } from './professor/MessagesView';
 
 export const ProfessorArea: React.FC = () => {
   const [currentView, setCurrentView] = useState<ProfessorView>('dashboard');
@@ -52,6 +53,8 @@ export const ProfessorArea: React.FC = () => {
             onClearPreselection={() => setPreselectedStudentIdForIntervention(null)}
           />
         );
+      case 'messages':
+        return <MessagesView />;
       default:
         return <ProfessorDashboard onNavigate={setCurrentView} />;
     }
@@ -64,6 +67,7 @@ export const ProfessorArea: React.FC = () => {
       case 'alerts': return 'Centro de Alertas';
       case 'student': return 'Vista de Alumno';
       case 'intervention': return 'Intervención docente';
+      case 'messages': return 'Mensajes';
     }
   };
 

@@ -11,15 +11,20 @@ import { Login } from './screens/Login';
 import { ProfessorArea } from './screens/ProfessorArea';
 import { Dashboard } from './screens/Dashboard';
 import { WorldMap } from './screens/WorldMap';
-import { Invest } from './screens/Invest';
+import { InvestPortfolio } from './screens/InvestPortfolio';
+import { InvestMarket } from './screens/InvestMarket';
 import { InvestOnboarding } from './screens/InvestOnboarding';
 import { SavingsFund } from './screens/SavingsFund';
+import { SavingsClass } from './screens/SavingsClass';
 import { News } from './screens/News';
 import { Profile } from './screens/Profile';
 import { Certificate } from './screens/Certificate';
 import { SessionSummaryScreen } from './screens/SessionSummaryScreen';
 import { UserPersona } from './screens/UserPersona';
+import { AvatarShop } from './screens/AvatarShop';
+import { Inbox } from './screens/Inbox';
 import { AIAssistant } from './components/AIAssistant';
+import { InvestorLevelScreen } from './screens/InvestorLevelScreen';
 
 const ScreenRouter = () => {
   const { currentScreen, user } = useGame();
@@ -27,13 +32,29 @@ const ScreenRouter = () => {
   switch (currentScreen) {
     case 'dashboard': return <Dashboard />;
     case 'world': return <WorldMap />;
-    case 'invest': return user.hasSeenInvestOnboarding ? <Invest /> : <InvestOnboarding />;
-    case 'savingsFund': return <SavingsFund />;
+    case 'invest':
+    case 'investPortfolio':
+      // El simulador solo se muestra cuando el alumno ha pasado por el onboarding y ha superado el test final.
+      // 'invest' se trata como alias de compatibilidad hacia la vista de resumen de cartera.
+      return user.hasSeenInvestOnboarding && user.hasPassedToolsFinalTest
+        ? <InvestPortfolio />
+        : <InvestOnboarding />;
+    case 'investMarket':
+      // Acceso directo al mercado simulado, protegido igualmente por el onboarding previo.
+      return user.hasSeenInvestOnboarding && user.hasPassedToolsFinalTest
+        ? <InvestMarket />
+        : <InvestOnboarding />;
+    case 'savingsFund':
+      // Si la clase previa no está completada, mostrar primero la clase + test; después, la herramienta
+      return user.hasCompletedSavingsClass ? <SavingsFund /> : <SavingsClass />;
     case 'news': return <News />;
     case 'profile': return <Profile />;
     case 'certificate': return <Certificate />;
     case 'sessionSummary': return <SessionSummaryScreen />;
     case 'userPersona': return <UserPersona />;
+    case 'avatarShop': return <AvatarShop />;
+    case 'investorLevel': return <InvestorLevelScreen />;
+    case 'inbox': return <Inbox />;
     default: return <Dashboard />;
   }
 };

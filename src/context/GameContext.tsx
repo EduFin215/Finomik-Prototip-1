@@ -5,13 +5,33 @@ import { ThemeMode } from '../utils/theme';
 export type Screen =
   | 'dashboard'
   | 'world'
+  /**
+   * Pantallas del módulo de inversión:
+   * - investPortfolio: resumen de cartera, métricas e insights
+   * - investMarket: mercado simulado y operativa de compra/venta
+   *
+   * Se mantiene temporalmente 'invest' como alias de compatibilidad,
+   * tratado como acceso al resumen de cartera.
+   */
   | 'invest'
+  | 'investPortfolio'
+  | 'investMarket'
   | 'savingsFund'
   | 'news'
   | 'profile'
   | 'certificate'
   | 'sessionSummary'
-  | 'userPersona';
+  | 'userPersona'
+  /**
+   * Pantalla de detalle del Nivel de Inversor:
+   * muestra progreso, retos y desbloqueos por nivel.
+   */
+  | 'investorLevel'
+  /**
+   * Tienda de avatares joven a pantalla completa.
+   */
+  | 'avatarShop'
+  | 'inbox';
 
 export type InvestorLevel = 1 | 2 | 3 | 4;
 
@@ -71,6 +91,10 @@ export interface UserState {
     history: PortfolioHistoryEntry[];
   };
   hasSeenInvestOnboarding?: boolean;
+  /** Clases educativas previas a las herramientas de ahorro/inversión */
+  hasCompletedSavingsClass?: boolean;
+  hasCompletedInvestClass?: boolean;
+  hasPassedToolsFinalTest?: boolean;
 }
 
 interface GameContextType {
@@ -133,6 +157,9 @@ const defaultUser: UserState = {
     history: []
   },
   hasSeenInvestOnboarding: false,
+  hasCompletedSavingsClass: false,
+  hasCompletedInvestClass: false,
+  hasPassedToolsFinalTest: false,
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);

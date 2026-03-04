@@ -6,7 +6,6 @@ import { LEADERBOARD } from '../data/leaderboard';
 import { getTheme } from '../utils/theme';
 import { YOUNG_AVATARS } from '../data/youngAvatars';
 import { AVATAR_BACKGROUNDS } from '../data/avatarBackgrounds';
-import { YoungAvatarPicker } from '../components/YoungAvatarPicker';
 
 export const Profile = () => {
   const {
@@ -14,14 +13,11 @@ export const Profile = () => {
     themeMode,
     toggleTheme,
     youngAvatarId,
-    setYoungAvatarId,
     youngAvatarBackgroundId,
-    setYoungAvatarBackgroundId,
+    setCurrentScreen,
   } = useGame();
   const { logout } = useAuth();
   const theme = getTheme(themeMode);
-
-  const [isAvatarPickerOpen, setIsAvatarPickerOpen] = React.useState(false);
 
   // Sort leaderboard including current user state
   const sortedLeaderboard = LEADERBOARD.map(p => 
@@ -134,31 +130,21 @@ export const Profile = () => {
 
           {themeMode === 'young' && (
             <div className={`${theme.card} bg-white/95 border-[color:var(--finomik-blue-6)]/70 p-4`}>
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="font-bold text-sm text-finomik-primary">Avatar joven</div>
                   <div className="text-xs text-[color:var(--finomik-blue-5)]">
-                    Elige tu personaje y el color de fondo.
+                    Personaliza tu personaje desde la tienda de avatares.
                   </div>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsAvatarPickerOpen(prev => !prev)}
-                  className="text-xs font-semibold text-finomik-primary underline"
+                  onClick={() => setCurrentScreen('avatarShop')}
+                  className="inline-flex items-center justify-center gap-1 rounded-full bg-finomik-primary text-white px-3 py-1.5 text-xs font-semibold shadow-sm hover:opacity-95 transition-opacity"
                 >
-                  {isAvatarPickerOpen ? 'Ocultar' : 'Cambiar avatar'}
+                  Cambiar avatar
                 </button>
               </div>
-
-              {isAvatarPickerOpen && (
-                <YoungAvatarPicker
-                  selectedAvatarId={youngAvatarId}
-                  onSelect={setYoungAvatarId}
-                  themeMode={themeMode}
-                  selectedBackgroundId={youngAvatarBackgroundId}
-                  onSelectBackground={setYoungAvatarBackgroundId}
-                />
-              )}
             </div>
           )}
         </div>

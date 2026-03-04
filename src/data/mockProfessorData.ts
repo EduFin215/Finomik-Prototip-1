@@ -44,6 +44,13 @@ export interface LessonDecisionData {
   }[];
 }
 
+export interface ModuleCompletionData {
+  moduleName: string;
+  completed: number;
+  inProgress: number;
+  notStarted: number;
+}
+
 /** One data point for health over time (e.g. weekly) */
 export interface HealthHistoryPoint {
   period: string; // e.g. "Sem 1", "Sem 2"
@@ -197,8 +204,6 @@ export const mockLessonDecisions: LessonDecisionData[] = [
   }
 ];
 
-// === Student profiles (individual view) ===
-
 const MODULE_NAMES = [
   'Módulo 1: Ahorro',
   'Módulo 1: Presupuesto',
@@ -209,6 +214,35 @@ const MODULE_NAMES = [
   'Módulo 3: Impuestos',
   'Módulo 3: Planificación',
 ];
+
+export function computeModuleCompletion(students: StudentStats[]): ModuleCompletionData[] {
+  const totalStudents = students.length;
+  const lessonsPerModule = 3;
+  return MODULE_NAMES.map((name, idx) => {
+    const moduleStartLesson = idx * lessonsPerModule + 1;
+    const moduleEndLesson = (idx + 1) * lessonsPerModule;
+    let completed = 0;
+    let inProgress = 0;
+    for (const s of students) {
+      const current = Number(s.progress.currentLesson);
+      if (current > moduleEndLesson) {
+        completed++;
+      } else if (current >= moduleStartLesson) {
+        inProgress++;
+      }
+    }
+    return {
+      moduleName: name,
+      completed,
+      inProgress,
+      notStarted: totalStudents - completed - inProgress,
+    };
+  });
+}
+
+export const mockModuleCompletion: ModuleCompletionData[] = computeModuleCompletion(mockStudents);
+
+// === Student profiles (individual view) ===
 
 /** Generates health history for the last 8 periods (e.g. weeks). Ends at current health. */
 function healthHistoryFor(studentHealth: number, studentId: string): HealthHistoryPoint[] {

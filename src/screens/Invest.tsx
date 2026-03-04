@@ -18,11 +18,11 @@ import { getAssetsForLevel, getInvestorLevelLabel, type MarketAsset } from '../d
 import { lineChartDefaults, lineChartTooltipClass } from '../utils/lineChartTheme';
 
 const ALLOCATION_COLORS: Record<string, string> = {
-  Stock: '#2563eb',
-  ETF: '#7c3aed',
-  Bond: '#0f766e',
-  Fund: '#f97316',
-  Other: '#4b5563',
+  Stock: '#114076',
+  ETF: '#5574A7',
+  Bond: '#3C4C67',
+  Fund: '#8F9EB7',
+  Other: '#C8D0DD',
 };
 
 type TradeMode = 'buy' | 'sell';
@@ -40,7 +40,7 @@ interface TradeModalState {
 }
 
 export const Invest = () => {
-  const { user, buyAsset, sellAsset, themeMode } = useGame();
+  const { user, buyAsset, sellAsset, themeMode, setCurrentScreen } = useGame();
   const theme = getTheme(themeMode);
 
   const ASSETS = useMemo(() => getAssetsForLevel(user.investorLevel), [user.investorLevel]);
@@ -49,6 +49,7 @@ export const Invest = () => {
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
   const [modalState, setModalState] = useState<TradeModalState | null>(null);
   const [section, setSection] = useState<'summary' | 'allocation' | 'activity'>('summary');
+  const [allocChart, setAllocChart] = useState<'type' | 'weight' | 'performance'>('type');
 
   const effectiveSelectedSymbol = selectedSymbol ?? ASSETS[0]?.symbol ?? null;
 
@@ -220,6 +221,29 @@ export const Invest = () => {
         return { name: symbol, gainLoss };
       })
       .filter((d): d is { name: string; gainLoss: number } => d !== null);
+  }, [portfolioHoldings, latestPriceBySymbol]);
+
+  const weightChartData = useMemo(() => {
+    if (portfolioMetrics.topWeights.length === 0) return [];
+    return portfolioMetrics.topWeights.map(item => ({
+      symbol: item.symbol,
+      weight: parseFloat(item.weight.toFixed(1)),
+    }));
+  }, [portfolioMetrics.topWeights]);
+
+  const performanceChartData = useMemo(() => {
+    if (portfolioHoldings.length === 0) return [];
+    return portfolioHoldings
+      .map(([symbol, data]) => {
+        const price = latestPriceBySymbol[symbol];
+        if (!price || data.quantity <= 0) return null;
+        const costBasis = data.averageCost * data.quantity;
+        const currentValue = price * data.quantity;
+        const returnPct = costBasis > 0 ? ((currentValue - costBasis) / costBasis) * 100 : 0;
+        return { symbol, returnPct: parseFloat(returnPct.toFixed(2)) };
+      })
+      .filter((d): d is { symbol: string; returnPct: number } => d !== null)
+      .sort((a, b) => b.returnPct - a.returnPct);
   }, [portfolioHoldings, latestPriceBySymbol]);
 
   const insightsList = useMemo(() => {
@@ -412,7 +436,110 @@ export const Invest = () => {
     const price = latestPriceBySymbol[modalState.symbol] || asset?.basePrice || 0;
     const holding = user.portfolio.holdings[modalState.symbol];
     const { mode, step, draft } = modalState;
-    const modeLabel = mode === 'buy' ? 'Compra' : 'Venta';
+
+    if (mode === 'sell') {
+      const qty = holding?.quantity ?? 0;
+      const avgCost = holding?.averageCost ?? 0;
+      const costBasis = avgCost * qty;
+      const currentValue = price * qty;
+      const gainLoss = currentValue - costBasis;
+      const gainLossPct = costBasis > 0 ? (gainLoss / costBasis) * 100 : 0;
+      const isPositive = gainLoss >= 0;
+
+      const handleSellAll = () => {
+        if (qty <= 0 || price <= 0) return;
+        sellAsset(modalState.symbol, price, qty);
+        closeModal();
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-auto my-8 p-6 md:p-8 space-y-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-xs uppercase font-semibold text-[color:var(--finomik-blue-5)] tracking-wider">
+                  Vender · {asset.symbol}
+                </div>
+                <h2 className="mt-1 text-2xl font-bold text-finomik-primary">{asset.name}</h2>
+              </div>
+              <button
+                onClick={closeModal}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                aria-label="Cerrar"
+              >
+                <CloseIcon size={24} />
+              </button>
+            </div>
+
+            <div className="text-center py-4">
+              <div className="text-xs uppercase font-semibold text-[color:var(--finomik-blue-5)] tracking-wider mb-1">
+                Precio actual de venta
+              </div>
+              <div className="text-4xl font-extrabold text-finomik-primary">
+                € {price.toFixed(2)}
+              </div>
+            </div>
+
+            {qty > 0 ? (
+              <div className="rounded-xl border border-[color:var(--finomik-blue-6)] bg-finomik-blue-soft/30 p-5 space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-[color:var(--finomik-blue-5)]">Tu posicion</span>
+                  <span className="font-bold text-finomik-primary">{qty.toFixed(3)} uds</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-[color:var(--finomik-blue-5)]">Precio medio de compra</span>
+                  <span className="font-semibold text-finomik-primary">€ {avgCost.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-[color:var(--finomik-blue-5)]">Valor actual</span>
+                  <span className="font-semibold text-finomik-primary">€ {currentValue.toFixed(2)}</span>
+                </div>
+                <hr className="border-[color:var(--finomik-blue-6)]" />
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-semibold text-[color:var(--finomik-blue-5)]">Ganancia / Perdida</span>
+                  <div className="text-right">
+                    <span className={`text-lg font-extrabold ${isPositive ? 'text-emerald-600' : 'text-red-500'}`}>
+                      {isPositive ? '+' : ''}{gainLoss.toFixed(2)} €
+                    </span>
+                    <span className={`ml-2 text-xs font-semibold px-2 py-0.5 rounded-full ${isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                      {isPositive ? '+' : ''}{gainLossPct.toFixed(2)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-center">
+                <p className="text-sm text-[color:var(--finomik-blue-5)]">
+                  No tienes unidades de este activo en cartera.
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={closeModal}
+                className="flex-1 px-5 py-3 rounded-xl border-2 border-[color:var(--finomik-blue-6)] text-base font-semibold text-[color:var(--finomik-blue-5)] hover:bg-slate-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSellAll}
+                disabled={qty <= 0 || price <= 0}
+                className={`flex-1 px-6 py-3 rounded-xl font-semibold text-base ${
+                  qty <= 0 || price <= 0
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    : 'bg-red-500 text-white hover:bg-red-600 shadow-lg'
+                }`}
+              >
+                Vender todo ({qty.toFixed(3)} uds)
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const modeLabel = 'Compra';
 
     const amount = parseFloat(draft.amount || '0') || 0;
     const units =
@@ -424,26 +551,17 @@ export const Invest = () => {
     const costOrRevenue = units * price;
 
     const insufficientCash =
-      mode === 'buy' && draft.modeInput === 'amount' && costOrRevenue > user.portfolio.cash;
-    const insufficientHoldings =
-      mode === 'sell' &&
-      units > 0 &&
-      (!holding || units > holding.quantity);
+      draft.modeInput === 'amount' && costOrRevenue > user.portfolio.cash;
 
     const handleConfirm = () => {
       if (units <= 0 || price <= 0) return;
-      if (mode === 'buy') {
-        if (insufficientCash) return;
-        buyAsset(modalState.symbol, price, units);
-      } else {
-        if (insufficientHoldings) return;
-        sellAsset(modalState.symbol, price, units);
-      }
+      if (insufficientCash) return;
+      buyAsset(modalState.symbol, price, units);
       closeModal();
     };
 
     const assetTypeLabel =
-      asset.type === 'Stock' ? 'acción (renta variable)' : asset.type === 'ETF' ? 'ETF' : asset.type === 'Bond' ? 'bono (renta fija)' : 'fondo';
+      asset.type === 'Stock' ? 'accion (renta variable)' : asset.type === 'ETF' ? 'ETF' : asset.type === 'Bond' ? 'bono (renta fija)' : 'fondo';
     const volatilityLabel =
       asset.volatility > 0.03 ? 'alta' : asset.volatility > 0.02 ? 'media' : 'baja';
 
@@ -468,33 +586,6 @@ export const Invest = () => {
 
           {step === 1 && (
             <>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <span className="text-base text-[color:var(--finomik-blue-5)] font-medium">
-                  Elige cómo quieres operar este activo
-                </span>
-                <div className="flex bg-finomik-blue-soft rounded-xl p-1 gap-1">
-                  <button
-                    onClick={() => setModalMode('buy')}
-                    className={`px-5 py-2.5 rounded-lg font-semibold text-base transition-colors ${
-                      mode === 'buy'
-                        ? 'bg-white text-finomik-primary shadow-sm'
-                        : 'text-[color:var(--finomik-blue-5)] hover:text-finomik-primary'
-                    }`}
-                  >
-                    Comprar
-                  </button>
-                  <button
-                    onClick={() => setModalMode('sell')}
-                    className={`px-5 py-2.5 rounded-lg font-semibold text-base transition-colors ${
-                      mode === 'sell'
-                        ? 'bg-white text-finomik-primary shadow-sm'
-                        : 'text-[color:var(--finomik-blue-5)] hover:text-finomik-primary'
-                    }`}
-                  >
-                    Vender
-                  </button>
-                </div>
-              </div>
               <div className="h-40 w-full rounded-xl overflow-hidden bg-slate-50/50 border border-slate-100">
                 <ResponsiveLine
                   data={[{ id: 'precio', data: series.map(d => ({ x: d.name, y: d.value })) }]}
@@ -529,16 +620,16 @@ export const Invest = () => {
                 />
               </div>
               <div className="rounded-xl bg-finomik-blue-soft/40 border border-[color:var(--finomik-blue-6)] p-5 space-y-3">
-                <h3 className="text-base font-bold text-finomik-primary">Qué es este activo</h3>
+                <h3 className="text-base font-bold text-finomik-primary">Que es este activo</h3>
                 <ul className="text-base text-[color:var(--finomik-blue-2)] space-y-2 leading-relaxed">
                   <li>
                     <strong>{asset.name}</strong> es un {assetTypeLabel} del sector {asset.sector} ({asset.region}).
                   </li>
                   <li>
-                    Volatilidad {volatilityLabel}: el precio puede subir o bajar más que en activos más estables.
+                    Volatilidad {volatilityLabel}: el precio puede subir o bajar mas que en activos mas estables.
                   </li>
                   <li>
-                    {mode === 'buy' ? 'Si compras,' : 'Si vendes,'} la operación se ejecuta al precio actual del simulador.
+                    Si compras, la operacion se ejecuta al precio actual del simulador.
                   </li>
                 </ul>
               </div>
@@ -553,7 +644,7 @@ export const Invest = () => {
                   onClick={() => advanceStep(2)}
                   className="px-6 py-3 rounded-xl bg-finomik-primary text-white text-base font-semibold hover:opacity-95 shadow-lg"
                 >
-                  Continuar a {mode === 'buy' ? 'compra' : 'venta'}
+                  Continuar a compra
                 </button>
               </div>
             </>
@@ -563,7 +654,7 @@ export const Invest = () => {
             <>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <span className="text-base font-medium text-[color:var(--finomik-blue-5)]">
-                  Configura tu {mode === 'buy' ? 'compra' : 'venta'}
+                  Configura tu compra
                 </span>
                 <div className="flex bg-finomik-blue-soft rounded-xl p-1 gap-1">
                   <button
@@ -612,30 +703,14 @@ export const Invest = () => {
                     }
                   />
                 </div>
-                {draft.modeInput === 'amount' && mode === 'buy' && (
+                {draft.modeInput === 'amount' && (
                   <div className="flex gap-2 flex-wrap">
                     {[25, 50, 100].map(pct => (
                       <button
                         key={pct}
                         onClick={() => {
-                          const amount = (user.portfolio.cash * pct) / 100;
-                          updateDraft({ amount: amount.toFixed(0) });
-                        }}
-                        className="px-4 py-2.5 rounded-xl bg-finomik-blue-soft text-[color:var(--finomik-blue-5)] font-semibold text-base hover:bg-finomik-blue-soft/80"
-                      >
-                        {pct}%
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {draft.modeInput === 'units' && mode === 'sell' && holding && (
-                  <div className="flex gap-2 flex-wrap">
-                    {[25, 50, 100].map(pct => (
-                      <button
-                        key={pct}
-                        onClick={() => {
-                          const u = (holding.quantity * pct) / 100;
-                          updateDraft({ units: u.toFixed(3) });
+                          const amt = (user.portfolio.cash * pct) / 100;
+                          updateDraft({ amount: amt.toFixed(0) });
                         }}
                         className="px-4 py-2.5 rounded-xl bg-finomik-blue-soft text-[color:var(--finomik-blue-5)] font-semibold text-base hover:bg-finomik-blue-soft/80"
                       >
@@ -655,26 +730,12 @@ export const Invest = () => {
                 </div>
                 <div>
                   {draft.modeInput === 'amount'
-                    ? `~${units.toFixed(3)} unidades · ${mode === 'buy' ? 'Coste' : 'Importe'} estimado: € ${costOrRevenue.toFixed(2)}`
-                    : `${units.toFixed(3)} unidades · ${mode === 'buy' ? 'Coste' : 'Importe'} estimado: € ${costOrRevenue.toFixed(2)}`}
+                    ? `~${units.toFixed(3)} unidades · Coste estimado: € ${costOrRevenue.toFixed(2)}`
+                    : `${units.toFixed(3)} unidades · Coste estimado: € ${costOrRevenue.toFixed(2)}`}
                 </div>
-                {mode === 'buy' && insufficientCash && amount > 0 && (
+                {insufficientCash && amount > 0 && (
                   <div className="text-red-600 font-semibold">
-                    No tienes suficiente saldo para esta operación.
-                  </div>
-                )}
-                {mode === 'sell' && insufficientHoldings && units > 0 && (
-                  <div className="text-red-600 font-semibold">
-                    Estás intentando vender más unidades de las que tienes.
-                  </div>
-                )}
-                {mode === 'sell' && holding && (
-                  <div>
-                    Tienes{' '}
-                    <span className="font-semibold">
-                      {holding.quantity.toFixed(3)} unidades
-                    </span>{' '}
-                    de este activo.
+                    No tienes suficiente saldo para esta operacion.
                   </div>
                 )}
               </div>
@@ -683,7 +744,7 @@ export const Invest = () => {
                   onClick={() => advanceStep(1)}
                   className="px-5 py-3 rounded-xl border-2 border-[color:var(--finomik-blue-6)] text-base font-semibold text-[color:var(--finomik-blue-5)] hover:bg-slate-50"
                 >
-                  Atrás
+                  Atras
                 </button>
                 <div className="flex gap-3">
                   <button
@@ -694,24 +755,14 @@ export const Invest = () => {
                   </button>
                   <button
                     onClick={handleConfirm}
-                    disabled={
-                      units <= 0 ||
-                      price <= 0 ||
-                      (mode === 'buy' && insufficientCash) ||
-                      (mode === 'sell' && insufficientHoldings)
-                    }
+                    disabled={units <= 0 || price <= 0 || insufficientCash}
                     className={`px-6 py-3 rounded-xl font-semibold text-base ${
-                      units <= 0 ||
-                      price <= 0 ||
-                      (mode === 'buy' && insufficientCash) ||
-                      (mode === 'sell' && insufficientHoldings)
+                      units <= 0 || price <= 0 || insufficientCash
                         ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                        : mode === 'buy'
-                        ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg'
-                        : 'bg-red-500 text-white hover:bg-red-600 shadow-lg'
+                        : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg'
                     }`}
                   >
-                    Confirmar {mode === 'buy' ? 'compra' : 'venta'}
+                    Confirmar compra
                   </button>
                 </div>
               </div>
@@ -726,12 +777,19 @@ export const Invest = () => {
     <div className={theme.contentPadding}>
       {/* Nivel de Inversor */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-finomik-blue-soft border border-[color:var(--finomik-blue-6)]">
-          <span className="text-xs font-semibold uppercase text-[color:var(--finomik-blue-5)]">Nivel de Inversor</span>
+        <button
+          type="button"
+          onClick={() => setCurrentScreen('investorLevel')}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-finomik-blue-soft border border-[color:var(--finomik-blue-6)] hover:bg-finomik-blue-soft/80 transition-colors cursor-pointer"
+          title="Ver detalles de tu nivel de inversor"
+        >
+          <span className="text-xs font-semibold uppercase text-[color:var(--finomik-blue-5)]">
+            Nivel de Inversor
+          </span>
           <span className="font-bold text-finomik-primary">
             Nivel {user.investorLevel} — {investorLevelLabel}
           </span>
-        </div>
+        </button>
         <p className="text-xs text-[color:var(--finomik-blue-5)]">
           {ASSETS.length} activos disponibles. Desbloquea más al subir de nivel.
         </p>
@@ -774,7 +832,7 @@ export const Invest = () => {
       {/* Pantalla 1 – Resumen */}
       {section === 'summary' && (
         <section className="min-h-[calc(100vh-96px)] flex flex-col gap-6">
-          <div className={`${theme.card} p-5`}>
+              <div className={`${theme.card} p-5`}>
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
               <div>
                 <p className={theme.textSubtle}>Evolución de tu cartera en los últimos días</p>
@@ -843,7 +901,13 @@ export const Invest = () => {
                   theme={lineChartDefaults.theme}
                   axisTop={null}
                   axisRight={null}
-                  axisBottom={{ tickSize: 0, tickPadding: 8, tickRotation: -25 }}
+                  axisBottom={{
+                    tickSize: 0,
+                    tickPadding: 8,
+                    tickRotation: -25,
+                    // Ocultamos las etiquetas "D1", "D2", "D3"... del eje X
+                    format: () => '',
+                  }}
                   axisLeft={{ tickSize: 0, tickPadding: 8, tickValues: 5 }}
                   enableArea={lineChartDefaults.enableArea}
                   areaOpacity={lineChartDefaults.areaOpacity}
@@ -985,106 +1049,190 @@ export const Invest = () => {
       {section === 'allocation' && (
         <section className="min-h-[calc(100vh-96px)] flex flex-col gap-6">
           <div className={`${theme.card} p-5`}>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div className="flex items-center gap-2">
                 <PieIcon size={18} className="text-finomik-primary" />
-                <h3 className={theme.headingMedium}>Dónde estás invertido</h3>
+                <h3 className={theme.headingMedium}>Analiza tu cartera</h3>
+              </div>
+              <div className="inline-flex items-center gap-2 bg-white border border-[color:var(--finomik-blue-6)] rounded-2xl px-2 py-1 shadow-sm">
+                <span className="hidden sm:inline text-[10px] font-semibold tracking-wide uppercase text-[color:var(--finomik-blue-5)]">
+                  Vista
+                </span>
+                {([
+                  { key: 'type' as const, label: 'Por tipo' },
+                  { key: 'weight' as const, label: 'Por peso' },
+                  { key: 'performance' as const, label: 'Rentabilidad' },
+                ]).map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setAllocChart(tab.key)}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-colors ${
+                      allocChart === tab.key
+                        ? 'bg-[#0B3064] text-white shadow'
+                        : 'text-[color:var(--finomik-blue-5)] hover:text-finomik-primary'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
             {portfolioHoldings.length === 0 ? (
               <p className={theme.textSubtle}>
-                Aún no tienes posiciones en tu cartera. Cuando empieces a invertir aquí verás la
-                distribución por tipos de activo.
+                Aun no tienes posiciones en tu cartera. Cuando empieces a invertir aqui veras la
+                distribucion por tipos de activo.
               </p>
             ) : (
-              <div className="grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.2fr)] gap-4">
-                <div className="flex flex-col items-center justify-center">
-                  <div className="w-48 h-48 md:w-56 md:h-56">
-                    <ResponsivePie
-                      data={portfolioMetrics.allocationByType.map(entry => ({
-                        id: entry.type,
-                        value: entry.value,
-                        label: entry.type,
-                        color: ALLOCATION_COLORS[entry.type] || ALLOCATION_COLORS.Other,
-                        percent: entry.percent,
-                      }))}
-                      margin={{ top: 8, right: 8, bottom: 8, left: 8 }}
-                      innerRadius={0.55}
-                      padAngle={1}
-                      cornerRadius={4}
-                      colors={{ datum: 'data.color' }}
-                      borderWidth={0}
-                      enableArcLabels={false}
-                      enableArcLinkLabels={false}
-                      isInteractive
-                      tooltip={({ datum }) => (
-                        <span className="bg-white px-2 py-1 rounded shadow text-xs">
-                          {datum.id}: € {datum.value.toLocaleString('es-ES')} ({(datum.data as { percent?: number }).percent?.toFixed(1)}%)
-                        </span>
-                      )}
-                    />
-                  </div>
-                  <p className="mt-2 text-[11px] text-[color:var(--finomik-blue-5)]">
-                    Vista rápida de tu cartera por tipo de activo.
-                  </p>
-                </div>
-                <div className="space-y-3 text-xs">
-                  {portfolioMetrics.allocationByType.map(entry => (
-                    <div key={entry.type} className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-2.5 h-2.5 rounded-full"
-                            style={{
-                              backgroundColor:
-                                ALLOCATION_COLORS[entry.type] || ALLOCATION_COLORS.Other,
-                            }}
-                          />
-                          <span className="font-semibold text-finomik-primary">
-                            {entry.type}
-                          </span>
-                        </div>
-                        <span className="text-[color:var(--finomik-blue-5)]">
-                          {entry.percent.toFixed(1)}% · €
-                          {entry.value.toLocaleString('es-ES', {
-                            maximumFractionDigits: 0,
-                          })}
-                        </span>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-finomik-blue-soft overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${entry.percent}%`,
-                            backgroundColor:
-                              ALLOCATION_COLORS[entry.type] || ALLOCATION_COLORS.Other,
-                          }}
+              <>
+                {allocChart === 'type' && (
+                  <div className="grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.2fr)] gap-4">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-48 h-48 md:w-56 md:h-56">
+                        <ResponsivePie
+                          data={portfolioMetrics.allocationByType.map(entry => ({
+                            id: entry.type,
+                            value: entry.value,
+                            label: entry.type,
+                            color: ALLOCATION_COLORS[entry.type] || ALLOCATION_COLORS.Other,
+                            percent: entry.percent,
+                          }))}
+                          margin={{ top: 8, right: 8, bottom: 8, left: 8 }}
+                          innerRadius={0.55}
+                          padAngle={1}
+                          cornerRadius={4}
+                          colors={{ datum: 'data.color' }}
+                          borderWidth={0}
+                          enableArcLabels={false}
+                          enableArcLinkLabels={false}
+                          isInteractive
+                          tooltip={({ datum }) => (
+                            <span className="bg-white px-2 py-1 rounded shadow text-xs">
+                              {datum.id}: € {datum.value.toLocaleString('es-ES')} ({(datum.data as { percent?: number }).percent?.toFixed(1)}%)
+                            </span>
+                          )}
                         />
                       </div>
-                    </div>
-                  ))}
-                  {portfolioMetrics.topWeights.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-[11px] font-semibold text-[color:var(--finomik-blue-5)] mb-1">
-                        Top posiciones por peso
+                      <p className="mt-2 text-[11px] text-[color:var(--finomik-blue-5)]">
+                        Distribucion de tu cartera por tipo de activo.
                       </p>
-                      {portfolioMetrics.topWeights.map(item => (
-                        <div
-                          key={item.symbol}
-                          className="flex items-center justify-between text-xs mb-1"
-                        >
-                          <span className="font-semibold text-finomik-primary">
-                            {item.symbol}
-                          </span>
-                          <span className="text-[color:var(--finomik-blue-5)]">
-                            {item.weight.toFixed(1)}%
-                          </span>
+                    </div>
+                    <div className="space-y-3 text-xs">
+                      {portfolioMetrics.allocationByType.map(entry => (
+                        <div key={entry.type} className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full"
+                                style={{
+                                  backgroundColor:
+                                    ALLOCATION_COLORS[entry.type] || ALLOCATION_COLORS.Other,
+                                }}
+                              />
+                              <span className="font-semibold text-finomik-primary">
+                                {entry.type}
+                              </span>
+                            </div>
+                            <span className="text-[color:var(--finomik-blue-5)]">
+                              {entry.percent.toFixed(1)}% · €
+                              {entry.value.toLocaleString('es-ES', {
+                                maximumFractionDigits: 0,
+                              })}
+                            </span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-finomik-blue-soft overflow-hidden">
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                width: `${entry.percent}%`,
+                                backgroundColor:
+                                  ALLOCATION_COLORS[entry.type] || ALLOCATION_COLORS.Other,
+                              }}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+                )}
+
+                {allocChart === 'weight' && (
+                  <div>
+                    <div className="h-64 md:h-72 w-full">
+                      <ResponsiveBar
+                        data={weightChartData}
+                        keys={['weight']}
+                        indexBy="symbol"
+                        layout="horizontal"
+                        margin={{ top: 8, right: 32, bottom: 28, left: 56 }}
+                        padding={0.35}
+                        valueScale={{ type: 'linear' }}
+                        indexScale={{ type: 'band', round: true }}
+                        colors={['#5574A7']}
+                        borderRadius={6}
+                        axisTop={null}
+                        axisRight={null}
+                        axisBottom={{ tickSize: 0, tickPadding: 8, format: v => `${v}%` }}
+                        axisLeft={{ tickSize: 0, tickPadding: 8 }}
+                        enableGridX
+                        enableGridY={false}
+                        enableLabel
+                        label={d => `${d.value}%`}
+                        labelSkipWidth={24}
+                        labelTextColor="#ffffff"
+                        isInteractive
+                        tooltip={({ indexValue, value }) => (
+                          <span className="bg-white px-2 py-1 rounded shadow text-xs text-finomik-primary">
+                            {indexValue}: {Number(value).toFixed(1)}% de tu cartera
+                          </span>
+                        )}
+                      />
+                    </div>
+                    <p className="mt-2 text-[11px] text-[color:var(--finomik-blue-5)]">
+                      Cuanto pesa cada posicion en el total de tu cartera.
+                    </p>
+                  </div>
+                )}
+
+                {allocChart === 'performance' && (
+                  <div>
+                    <div className="h-64 md:h-72 w-full">
+                      <ResponsiveBar
+                        data={performanceChartData}
+                        keys={['returnPct']}
+                        indexBy="symbol"
+                        layout="horizontal"
+                        margin={{ top: 8, right: 32, bottom: 28, left: 56 }}
+                        padding={0.35}
+                        valueScale={{ type: 'linear' }}
+                        indexScale={{ type: 'band', round: true }}
+                        colors={({ data }) =>
+                          (data.returnPct as number) >= 0 ? '#114076' : '#C8D0DD'
+                        }
+                        borderRadius={6}
+                        axisTop={null}
+                        axisRight={null}
+                        axisBottom={{ tickSize: 0, tickPadding: 8, format: v => `${v}%` }}
+                        axisLeft={{ tickSize: 0, tickPadding: 8 }}
+                        enableGridX
+                        enableGridY={false}
+                        enableLabel
+                        label={d => `${(d.value as number) >= 0 ? '+' : ''}${d.value}%`}
+                        labelSkipWidth={24}
+                        labelTextColor="#ffffff"
+                        isInteractive
+                        tooltip={({ indexValue, value }) => (
+                          <span className="bg-white px-2 py-1 rounded shadow text-xs text-finomik-primary">
+                            {indexValue}: {(value as number) >= 0 ? '+' : ''}{Number(value).toFixed(2)}%
+                          </span>
+                        )}
+                      />
+                    </div>
+                    <p className="mt-2 text-[11px] text-[color:var(--finomik-blue-5)]">
+                      Rentabilidad de cada posicion respecto al precio de compra.
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -1224,7 +1372,7 @@ export const Invest = () => {
                   padding={0.3}
                   valueScale={{ type: 'linear' }}
                   indexScale={{ type: 'band', round: true }}
-                  colors={['#2563eb']}
+                  colors={['#5574A7']}
                   borderRadius={6}
                   axisTop={null}
                   axisRight={null}

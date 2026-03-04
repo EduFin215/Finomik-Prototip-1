@@ -617,6 +617,110 @@ const chapter2LearningPath: LearningNode[] = [
       ],
     },
   },
+
+  // 6. Clase previa a Fondo de Ahorro (vídeo + minijuegos intro)
+  {
+    id: "c2_savings_class_intro",
+    type: "lesson",
+    title: "Antes de abrir tu Fondo de Ahorro",
+    description: "Por qué tu colchón de seguridad va primero.",
+    layout: "video_only",
+    noteIds: [3, 6, 10],
+    content: {
+      sections: [
+        {
+          title: "Tu escudo financiero",
+          body:
+            "Antes de pensar en invertir, necesitas un pequeño escudo que te proteja de imprevistos.\n\n" +
+            "Ese escudo se llama fondo de emergencia y vive en una cuenta muy líquida y con bajo riesgo, como una cuenta remunerada.",
+          highlightText: "Primero protege tu hoy, luego construirás tu mañana.",
+        },
+      ],
+    },
+  },
+  {
+    id: "c2_savings_class_mcq_emergencia",
+    type: "minigame",
+    title: "Situaciones de emergencia",
+    description: "¿De dónde debería salir el dinero?",
+    minigameType: "mcq",
+    noteIds: [3, 6, 10],
+    data: {
+      question:
+        "Mañana se estropea la caldera y necesitas 600 €. ¿De dónde debería salir idealmente ese dinero?",
+      options: [
+        "De tu tarjeta de crédito al máximo.",
+        "De tu fondo de emergencia en una cuenta remunerada.",
+        "Vendiendo a toda prisa tus inversiones de largo plazo.",
+      ],
+      correctIndex: 1,
+    },
+  },
+  {
+    id: "c2_savings_class_truefalse_invertir_colchon",
+    type: "minigame",
+    title: "¿Invertir el colchón?",
+    description: "Verdadero o falso.",
+    minigameType: "true_false",
+    noteIds: [3, 6, 10],
+    data: {
+      question:
+        "Es buena idea invertir todo tu fondo de emergencia en activos muy volátiles para que crezca más rápido.",
+      isTrue: false,
+    },
+  },
+  {
+    id: "c2_savings_class_case_reparto",
+    type: "minigame",
+    title: "Cómo repartir tu sueldo",
+    description: "Toma una decisión rápida sobre tu colchón.",
+    minigameType: "case",
+    noteIds: [3, 6, 10],
+    data: {
+      scenario:
+        "Te quedan 300€ libres este mes después de pagar tus gastos fijos. Todavía no tienes fondo de emergencia.",
+      options: [
+        {
+          text: "Lo gasto todo en ocio este mes. Ya ahorraré cuando gane más.",
+          feedback:
+            "Si gastas siempre todo lo que te sobra, tu colchón nunca llega. Divertirse es importante, pero sin ningún margen de seguridad cualquier imprevisto te obligará a endeudarte.",
+          correct: false,
+        },
+        {
+          text: "Guardo al menos la mitad (150€) para empezar mi fondo de emergencia y el resto lo destino a ocio.",
+          feedback:
+            "Esta opción equilibra presente y futuro: empiezas a construir tu escudo financiero sin renunciar del todo a tus planes del mes.\n\n" +
+            "Con varios meses seguidos aportando, tu colchón crecerá hasta cubrir varios meses de gastos fijos.",
+          correct: true,
+        },
+        {
+          text: "Los dejo en la cuenta corriente sin ningún plan. Si sobra a final de año ya veré qué hago.",
+          feedback:
+            "Tener margen en cuenta corriente ayuda, pero sin un plan claro es fácil que ese dinero se vaya en pequeños gastos.\n\n" +
+            "Llamarlo \"fondo de emergencia\" y separarlo en una cuenta remunerada te ayuda a respetarlo más.",
+          correct: false,
+        },
+      ],
+    },
+  },
+  {
+    id: "c2_savings_class_final_quiz",
+    type: "minigame",
+    title: "Mini test: ¿listo para tu Fondo de Ahorro?",
+    description: "Comprueba que tienes claros los básicos antes de usar la herramienta.",
+    minigameType: "mcq",
+    noteIds: [3, 6, 10],
+    data: {
+      question:
+        "¿Cuál de estas frases describe mejor para qué sirve tu Fondo de Ahorro / fondo de emergencia?",
+      options: [
+        "Para intentar batir al mercado con la máxima rentabilidad posible.",
+        "Para tener un colchón líquido y de bajo riesgo ante imprevistos.",
+        "Para guardar el dinero que sabes que no vas a necesitar nunca.",
+      ],
+      correctIndex: 1,
+    },
+  },
 ];
 
 // Contenido de onboarding para el módulo Invertir (explicación de inversión obligatoria)
