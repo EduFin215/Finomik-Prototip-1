@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
-import { User, Settings, Award, Shield, Zap, Trophy, ToggleLeft, ToggleRight, LogOut } from 'lucide-react';
+import { User, Settings, Award, Shield, Zap, Trophy, ToggleLeft, ToggleRight, LogOut, Sparkles } from 'lucide-react';
 import { LEADERBOARD } from '../data/leaderboard';
 import { getTheme } from '../utils/theme';
 import { YOUNG_AVATARS } from '../data/youngAvatars';
@@ -129,23 +129,35 @@ export const Profile = () => {
           </div>
 
           {themeMode === 'young' && (
-            <div className={`${theme.card} bg-white/95 border-[color:var(--finomik-blue-6)]/70 p-4`}>
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="font-bold text-sm text-finomik-primary">Avatar joven</div>
-                  <div className="text-xs text-[color:var(--finomik-blue-5)]">
-                    Personaliza tu personaje desde la tienda de avatares.
+            <button
+              type="button"
+              onClick={() => setCurrentScreen('avatarShop')}
+              className="w-full text-left group relative overflow-hidden rounded-2xl border border-[color:var(--finomik-blue-6)]/60 bg-white/95 shadow-sm transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-4 p-4">
+                <div
+                  className={`w-16 h-16 shrink-0 rounded-xl flex items-center justify-center text-3xl shadow-inner ${currentBackground.bgClass} ${
+                    currentBackground.textClass ?? 'text-finomik-primary'
+                  }`}
+                >
+                  <span>{currentYoungAvatar.emoji}</span>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-sm text-finomik-primary">
+                    {currentYoungAvatar.name}
+                  </div>
+                  <div className="text-[11px] text-[color:var(--finomik-blue-5)] mt-0.5">
+                    Personaliza tu personaje en la tienda
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setCurrentScreen('avatarShop')}
-                  className="inline-flex items-center justify-center gap-1 rounded-full bg-finomik-primary text-white px-3 py-1.5 text-xs font-semibold shadow-sm hover:opacity-95 transition-opacity"
-                >
-                  Cambiar avatar
-                </button>
+
+                <div className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-finomik-primary/90 to-[color:var(--finomik-blue-1)] text-white px-4 py-2.5 text-xs font-semibold shadow-md backdrop-blur-sm group-hover:shadow-lg group-hover:brightness-110 transition-all">
+                  <Sparkles size={14} />
+                  Cambiar
+                </div>
               </div>
-            </div>
+            </button>
           )}
         </div>
       </div>

@@ -48,7 +48,7 @@ export const Login: React.FC = () => {
               <h2 className="heading-2 text-lg text-finomik-primary">
                 Entrar como alumno
               </h2>
-              <p className="text-body text-sm text-[color:var(--finomik-blue-5)] mt-1">
+              <p className="text-body text-sm text-finomik-primary/60 mt-1">
                 Accede al juego, aprende y practica finanzas
               </p>
             </div>
